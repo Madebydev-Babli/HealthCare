@@ -17,7 +17,6 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Logged in doctor
     const doctor = await Doctor.findOne({
       userId: session.user.id,
     }).lean();
@@ -29,16 +28,44 @@ export async function GET() {
       );
     }
 
-    // Doctor appointments
+    // =========================
+    // ONBOARDING STATES
+    // =========================
+
+    if (doctor.status === "pending") {
+      return NextResponse.json({
+        onboarding: true,
+        status: "pending",
+        doctor,
+      });
+    }
+
+    if (doctor.status === "rejected") {
+      return NextResponse.json({
+        onboarding: true,
+        status: "rejected",
+        doctor,
+      });
+    }
+
+    if (doctor.status === "approved" && !doctor.profileCompleted) {
+      return NextResponse.json({
+        onboarding: true,
+        status: "approved",
+        profileCompleted: false,
+        doctor,
+      });
+    }
+
+    // =========================
+    // NORMAL DASHBOARD
+    // =========================
+
     const appointments = await Appointment.find({
       doctorId: doctor._id.toString(),
     })
       .sort({ createdAt: -1 })
       .lean();
-
-    // ===========================
-    // Dashboard Statistics
-    // ===========================
 
     const totalAppointments = appointments.length;
 
@@ -55,7 +82,7 @@ export async function GET() {
     ).length;
 
     const cancelledAppointments = appointments.filter(
-      (appointment: any) => appointment.status === "rejected",
+      (appointment: any) => appointment.status === "cancelled",
     ).length;
 
     const totalPatients = new Set(
@@ -64,21 +91,16 @@ export async function GET() {
 
     const totalEarnings = appointments
       .filter((appointment: any) => appointment.paymentStatus === "paid")
-      .reduce((sum: number, appointment: any) => sum + appointment.fee, 0);
-
-    // ===========================
-    // Today's Appointments
-    // ===========================
+      .reduce(
+        (sum: number, appointment: any) => sum + (appointment.fee || 0),
+        0,
+      );
 
     const today = new Date().toISOString().split("T")[0];
 
     const todayAppointments = appointments.filter(
       (appointment: any) => appointment.date === today,
     );
-
-    // ===========================
-    // Recent Patients
-    // ===========================
 
     const uniquePatients = new Map();
 
@@ -94,11 +116,11 @@ export async function GET() {
 
     const recentPatients = Array.from(uniquePatients.values()).slice(0, 5);
 
-    // ===========================
-    // Response
-    // ===========================
-
     return NextResponse.json({
+      onboarding: false,
+      status: doctor.status,
+      profileCompleted: doctor.profileCompleted,
+
       doctor,
 
       stats: {
@@ -121,7 +143,7 @@ export async function GET() {
       recentPatients,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Doctor dashboard error:", error);
 
     return NextResponse.json(
       {

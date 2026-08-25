@@ -1,16 +1,21 @@
 "use client";
 
 import AppointmentOverview from "@/components/dashboard/doctor/AppointmentOverview";
+import DoctorProfileSetup from "@/components/dashboard/doctor/DoctorProfileSetup";
+import DoctorUnderReview from "@/components/dashboard/doctor/DoctorUnderReview";
 import RecentPatients from "@/components/dashboard/doctor/RecentPatients";
 import StatsCards from "@/components/dashboard/doctor/StatsCard";
 import TodayAppointments from "@/components/dashboard/doctor/Today'sAppointment";
 import DashboardHeader from "@/components/dashboard/Doctor-Header";
-import type { DoctorDashboardData } from "@/types/doctor-dashboard";
+import type {
+  DoctorDashboardData,
+  DoctorDashboardResponse,
+} from "@/types/doctor-dashboard";
 import { useEffect, useState } from "react";
 import { CalendarDays, Users, IndianRupee, Star } from "lucide-react";
 
 export default function DoctorDashboard() {
-  const [data, setData] = useState<DoctorDashboardData | null>(null);
+  const [data, setData] = useState<DoctorDashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -67,6 +72,14 @@ export default function DoctorDashboard() {
         </div>
       </div>
     );
+  }
+
+  if (data.onboarding) {
+    if (data.status === "approved" && data.profileCompleted === false) {
+      return <DoctorProfileSetup />;
+    }
+
+    return <DoctorUnderReview />;
   }
 
   return (

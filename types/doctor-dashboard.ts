@@ -102,7 +102,17 @@ export interface Patient {
   totalVisits: number;
 }
 
+export interface DoctorDashboardOnboardingData {
+  onboarding: true;
+  status: "pending" | "rejected" | "approved";
+  profileCompleted?: boolean;
+  doctor: Doctor;
+}
+
 export interface DoctorDashboardData {
+  onboarding: false;
+  status: "pending" | "approved" | "rejected";
+  profileCompleted: boolean;
   doctor: Doctor;
 
   stats: DashboardStats;
@@ -115,3 +125,7 @@ export interface DoctorDashboardData {
 
   recentPatients: Patient[];
 }
+
+export type DoctorDashboardResponse =
+  | DoctorDashboardOnboardingData
+  | DoctorDashboardData;

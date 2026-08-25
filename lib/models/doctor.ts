@@ -42,25 +42,22 @@ const DoctorSchema = new Schema(
     // ===========================
     specialization: {
       type: String,
-      required: true,
       index: true,
     },
 
     degree: {
       type: String,
-      required: true,
     },
 
     experience: {
       type: Number,
-      required: true,
       min: 0,
     },
 
     licenseNumber: {
       type: String,
-      required: true,
       unique: true,
+      sparse: true,
     },
 
     languages: [
@@ -71,7 +68,6 @@ const DoctorSchema = new Schema(
 
     consultationFee: {
       type: Number,
-      required: true,
       min: 0,
     },
 
@@ -83,7 +79,6 @@ const DoctorSchema = new Schema(
 
     bio: {
       type: String,
-      required: true,
     },
 
     // ===========================

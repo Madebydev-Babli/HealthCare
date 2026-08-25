@@ -40,7 +40,7 @@ const links = [
     icon: Clock3,
   },
   {
-    href: "/dashboard/doctor/profile",
+    href: "/dashboard/doctor/profile/create",
     label: "Profile",
     icon: User,
   },

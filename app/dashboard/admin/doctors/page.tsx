@@ -6,12 +6,13 @@ type Doctor = {
   _id: string;
   name: string;
   image: string;
-  fieldOfMedical: string;
-  experience: string;
+  specialization: string;
+  experience: number;
   degree: string;
-  appointmentFee: number;
+  consultationFee: number;
   status: string;
   bio: string;
+  verified: boolean;
 };
 
 export default function AdminDoctorsPage() {
@@ -93,7 +94,7 @@ export default function AdminDoctorsPage() {
                     Dr. {doctor.name}
                   </h2>
 
-                  <p className="text-blue-100">{doctor.fieldOfMedical}</p>
+                  <p className="text-blue-100">{doctor.specialization}</p>
                 </div>
               </div>
             </div>
@@ -116,7 +117,7 @@ export default function AdminDoctorsPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-500">Fee</span>
                   <span className="font-semibold">
-                    ₹{doctor.appointmentFee}
+                    ₹{doctor.consultationFee}
                   </span>
                 </div>
 
@@ -206,7 +207,7 @@ export default function AdminDoctorsPage() {
                   Dr. {selectedDoctor.name}
                 </h2>
 
-                <p className="text-gray-500">{selectedDoctor.fieldOfMedical}</p>
+                <p className="text-gray-500">{selectedDoctor.specialization}</p>
               </div>
             </div>
 
@@ -226,7 +227,7 @@ export default function AdminDoctorsPage() {
               <div className="flex justify-between">
                 <span>Consultation Fee</span>
                 <span className="font-semibold">
-                  ₹{selectedDoctor.appointmentFee}
+                  ₹{selectedDoctor.consultationFee}
                 </span>
               </div>
             </div>

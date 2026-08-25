@@ -64,21 +64,62 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
+    const requiredFields = [
+      "name",
+      "gender",
+      "dob",
+      "phone",
+      "specialization",
+      "degree",
+      "experience",
+      "licenseNumber",
+      "consultationFee",
+      "consultationMode",
+      "bio",
+    ];
+
+    const missingFields = requiredFields.filter(
+      (field) =>
+        body[field] === undefined ||
+        body[field] === null ||
+        (typeof body[field] === "string" && !body[field].trim()),
+    );
+
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Please complete all required profile fields. Missing: ${missingFields.join(", ")}`,
+        },
+        { status: 400 },
+      );
+    }
+
+    if (!body.clinic?.name || !body.clinic?.city || !body.clinic?.state) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Clinic name, city, and state are required",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (!body.availability || typeof body.availability !== "object") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Availability is required",
+        },
+        { status: 400 },
+      );
+    }
+
     const existingDoctor = await Doctor.findOne({
       userId: session.user.id,
     });
 
-    if (existingDoctor) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Doctor profile already exists",
-        },
-        { status: 409 },
-      );
-    }
-
-    const doctor = await Doctor.create({
+    const doctorPayload = {
       userId: session.user.id,
 
       // Personal
@@ -101,7 +142,7 @@ export async function POST(req: Request) {
       // Clinic
       clinic: {
         name: body.clinic?.name,
-        image: body.clinic?.image,
+        images: body.clinic?.images || [],
         address: body.clinic?.address,
         city: body.clinic?.city,
         state: body.clinic?.state,
@@ -109,14 +150,25 @@ export async function POST(req: Request) {
         landmark: body.clinic?.landmark,
         phone: body.clinic?.phone,
         mapLink: body.clinic?.mapLink,
+        coordinates: body.clinic?.coordinates || {},
       },
 
       // Availability
       availability: body.availability,
+      profileCompleted: true,
+    };
 
-      verified: false,
-      status: "pending",
-    });
+    let doctor;
+
+    if (existingDoctor) {
+      doctor = await Doctor.findOneAndUpdate(
+        { userId: session.user.id },
+        { $set: doctorPayload },
+        { new: true, runValidators: true },
+      );
+    } else {
+      doctor = await Doctor.create(doctorPayload);
+    }
 
     return NextResponse.json(
       {
