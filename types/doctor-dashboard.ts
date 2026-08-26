@@ -52,6 +52,7 @@ export interface Doctor {
 
   verified: boolean;
   status: "pending" | "approved" | "rejected";
+  profileCompleted: boolean;
 
   createdAt: string;
   updatedAt: string;
@@ -105,7 +106,7 @@ export interface Patient {
 export interface DoctorDashboardOnboardingData {
   onboarding: true;
   status: "pending" | "rejected" | "approved";
-  profileCompleted?: boolean;
+  profileCompleted: boolean;
   doctor: Doctor;
 }
 

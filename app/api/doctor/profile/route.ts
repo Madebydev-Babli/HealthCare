@@ -1,262 +1,193 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Doctor from "@/lib/models/doctor";
 
-// ===================== GET =====================
+const days = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+const daySchema = z.object({
+  available: z.boolean(),
+  start: z.string(),
+  end: z.string(),
+});
+const profileSchema = z
+  .object({
+    name: z.string().trim().min(1),
+    image: z.string().url().or(z.literal("")),
+    gender: z.enum(["Male", "Female", "Other"]),
+    dob: z.string().min(1),
+    phone: z.string().regex(/^[6-9]\d{9}$/),
+    specialization: z.string().trim().min(1),
+    degree: z.string().trim().min(1),
+    experience: z.coerce.number().min(0),
+    licenseNumber: z.string().trim().min(1),
+    languages: z.array(z.string().trim().min(1)).min(1),
+    consultationFee: z.coerce.number().min(0),
+    consultationMode: z.enum(["Clinic", "Online", "Both"]),
+    bio: z.string().trim().min(1),
+    clinic: z.object({
+      name: z.string(),
+      images: z.array(z.string().url()),
+      address: z.string(),
+      city: z.string(),
+      state: z.string(),
+      pincode: z.string(),
+      landmark: z.string(),
+      phone: z.string(),
+      mapLink: z.string().url().or(z.literal("")),
+      coordinates: z.object({
+        latitude: z.coerce.number(),
+        longitude: z.coerce.number(),
+      }),
+    }),
+    availability: z.object(
+      Object.fromEntries(days.map((day) => [day, daySchema])) as Record<
+        (typeof days)[number],
+        typeof daySchema
+      >,
+    ),
+  })
+  .superRefine((value, ctx) => {
+    for (const day of days) {
+      const entry = value.availability[day];
+      if (
+        entry.available &&
+        (!entry.start || !entry.end || entry.start >= entry.end)
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["availability", day],
+          message: "Available days need a valid time range",
+        });
+    }
+    if (value.consultationMode !== "Online") {
+      for (const field of [
+        "name",
+        "address",
+        "city",
+        "state",
+        "pincode",
+        "phone",
+      ] as const)
+        if (!value.clinic[field].trim())
+          ctx.addIssue({
+            code: "custom",
+            path: ["clinic", field],
+            message: `${field} is required`,
+          });
+    }
+  });
+
+async function getDoctor() {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "doctor")
+    return { session: null, doctor: null };
+  const doctor = await Doctor.findOne({ userId: session.user.id });
+  return { session, doctor };
+}
 
 export async function GET() {
   try {
     await connectDB();
-
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
+    const { session, doctor } = await getDoctor();
+    if (!session)
       return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
+        { success: false, message: "Unauthorized" },
         { status: 401 },
       );
-    }
-
-    const doctor = await Doctor.findOne({
-      userId: session.user.id,
-    });
-
-    return NextResponse.json({
-      success: true,
-      doctor,
-    });
+    if (!doctor)
+      return NextResponse.json(
+        { success: false, message: "Doctor profile not found" },
+        { status: 404 },
+      );
+    return NextResponse.json({ success: true, doctor });
   } catch (error) {
-    console.error(error);
-
+    console.error("Get doctor profile error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Internal Server Error",
-      },
+      { success: false, message: "Internal Server Error" },
       { status: 500 },
     );
   }
 }
 
-// ===================== POST =====================
+async function saveProfile(req: Request, method: "POST" | "PUT") {
+  await connectDB();
+  const { session, doctor } = await getDoctor();
+  if (!session)
+    return NextResponse.json(
+      { success: false, message: "Only doctors can manage profiles" },
+      { status: 401 },
+    );
+  if (!doctor)
+    return NextResponse.json(
+      { success: false, message: "Doctor profile not found" },
+      { status: 404 },
+    );
+  if (doctor.status !== "approved")
+    return NextResponse.json(
+      { success: false, message: "Your doctor account must be approved first" },
+      { status: 403 },
+    );
+
+  const parsed = profileSchema.safeParse(await req.json());
+  if (!parsed.success)
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Please correct the profile fields and try again",
+        errors: parsed.error.flatten().fieldErrors,
+      },
+      { status: 400 },
+    );
+
+  const update = { ...parsed.data, profileCompleted: true };
+  const updated = await Doctor.findOneAndUpdate(
+    { userId: session.user.id },
+    { $set: update },
+    { new: true, runValidators: true },
+  );
+  return NextResponse.json(
+    {
+      success: true,
+      message:
+        method === "POST"
+          ? "Profile created successfully"
+          : "Profile updated successfully",
+      doctor: updated,
+    },
+    { status: method === "POST" ? 201 : 200 },
+  );
+}
 
 export async function POST(req: Request) {
   try {
-    await connectDB();
-
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        { status: 401 },
-      );
-    }
-
-    const body = await req.json();
-
-    const requiredFields = [
-      "name",
-      "gender",
-      "dob",
-      "phone",
-      "specialization",
-      "degree",
-      "experience",
-      "licenseNumber",
-      "consultationFee",
-      "consultationMode",
-      "bio",
-    ];
-
-    const missingFields = requiredFields.filter(
-      (field) =>
-        body[field] === undefined ||
-        body[field] === null ||
-        (typeof body[field] === "string" && !body[field].trim()),
-    );
-
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Please complete all required profile fields. Missing: ${missingFields.join(", ")}`,
-        },
-        { status: 400 },
-      );
-    }
-
-    if (!body.clinic?.name || !body.clinic?.city || !body.clinic?.state) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Clinic name, city, and state are required",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (!body.availability || typeof body.availability !== "object") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Availability is required",
-        },
-        { status: 400 },
-      );
-    }
-
-    const existingDoctor = await Doctor.findOne({
-      userId: session.user.id,
-    });
-
-    const doctorPayload = {
-      userId: session.user.id,
-
-      // Personal
-      name: body.name,
-      image: body.image,
-      gender: body.gender,
-      dob: body.dob,
-      phone: body.phone,
-
-      // Professional
-      specialization: body.specialization,
-      degree: body.degree,
-      experience: Number(body.experience),
-      licenseNumber: body.licenseNumber,
-      bio: body.bio,
-      consultationFee: Number(body.consultationFee),
-      consultationMode: body.consultationMode,
-      languages: body.languages || [],
-
-      // Clinic
-      clinic: {
-        name: body.clinic?.name,
-        images: body.clinic?.images || [],
-        address: body.clinic?.address,
-        city: body.clinic?.city,
-        state: body.clinic?.state,
-        pincode: body.clinic?.pincode,
-        landmark: body.clinic?.landmark,
-        phone: body.clinic?.phone,
-        mapLink: body.clinic?.mapLink,
-        coordinates: body.clinic?.coordinates || {},
-      },
-
-      // Availability
-      availability: body.availability,
-      profileCompleted: true,
-    };
-
-    let doctor;
-
-    if (existingDoctor) {
-      doctor = await Doctor.findOneAndUpdate(
-        { userId: session.user.id },
-        { $set: doctorPayload },
-        { new: true, runValidators: true },
-      );
-    } else {
-      doctor = await Doctor.create(doctorPayload);
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Profile created successfully",
-        doctor,
-      },
-      { status: 201 },
-    );
+    return await saveProfile(req, "POST");
   } catch (error) {
-    console.error(error);
-
+    console.error("Create doctor profile error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Unable to create profile",
-      },
+      { success: false, message: "Unable to create profile" },
       { status: 500 },
     );
   }
 }
 
-// ===================== PUT =====================
-
 export async function PUT(req: Request) {
   try {
-    await connectDB();
-
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        { status: 401 },
-      );
-    }
-
-    const body = await req.json();
-
-    // Never allow doctor to edit these fields
-    delete body.userId;
-    delete body.status;
-    delete body.verified;
-    delete body.totalAppointments;
-    delete body.totalPatients;
-    delete body.totalEarnings;
-    delete body.rating;
-    delete body.reviews;
-
-    const doctor = await Doctor.findOneAndUpdate(
-      {
-        userId: session.user.id,
-      },
-      {
-        $set: body,
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-
-    if (!doctor) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Doctor profile not found",
-        },
-        { status: 404 },
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Profile updated successfully",
-      doctor,
-    });
+    return await saveProfile(req, "PUT");
   } catch (error) {
-    console.error(error);
-
+    console.error("Update doctor profile error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Unable to update profile",
-      },
+      { success: false, message: "Unable to update profile" },
       { status: 500 },
     );
   }

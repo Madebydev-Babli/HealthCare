@@ -7,6 +7,16 @@ import { connectDB } from "@/lib/db";
 import Doctor from "@/lib/models/doctor";
 import Appointment from "@/lib/models/appointment";
 
+type DashboardAppointment = {
+  status?: string;
+  paymentStatus?: string;
+  fee?: number;
+  patientId: string;
+  patientName?: string;
+  patientEmail?: string;
+  date?: string;
+};
+
 export async function GET() {
   try {
     await connectDB();
@@ -36,6 +46,7 @@ export async function GET() {
       return NextResponse.json({
         onboarding: true,
         status: "pending",
+        profileCompleted: false,
         doctor,
       });
     }
@@ -44,11 +55,12 @@ export async function GET() {
       return NextResponse.json({
         onboarding: true,
         status: "rejected",
+        profileCompleted: false,
         doctor,
       });
     }
 
-    if (doctor.status === "approved" && !doctor.profileCompleted) {
+    if (doctor.status !== "approved" || doctor.profileCompleted !== true) {
       return NextResponse.json({
         onboarding: true,
         status: "approved",
@@ -70,41 +82,47 @@ export async function GET() {
     const totalAppointments = appointments.length;
 
     const pendingAppointments = appointments.filter(
-      (appointment: any) => appointment.status === "pending",
+      (appointment: DashboardAppointment) => appointment.status === "pending",
     ).length;
 
     const approvedAppointments = appointments.filter(
-      (appointment: any) => appointment.status === "approved",
+      (appointment: DashboardAppointment) => appointment.status === "approved",
     ).length;
 
     const completedAppointments = appointments.filter(
-      (appointment: any) => appointment.status === "completed",
+      (appointment: DashboardAppointment) => appointment.status === "completed",
     ).length;
 
     const cancelledAppointments = appointments.filter(
-      (appointment: any) => appointment.status === "cancelled",
+      (appointment: DashboardAppointment) => appointment.status === "cancelled",
     ).length;
 
     const totalPatients = new Set(
-      appointments.map((appointment: any) => appointment.patientId),
+      appointments.map(
+        (appointment: DashboardAppointment) => appointment.patientId,
+      ),
     ).size;
 
     const totalEarnings = appointments
-      .filter((appointment: any) => appointment.paymentStatus === "paid")
+      .filter(
+        (appointment: DashboardAppointment) =>
+          appointment.paymentStatus === "paid",
+      )
       .reduce(
-        (sum: number, appointment: any) => sum + (appointment.fee || 0),
+        (sum: number, appointment: DashboardAppointment) =>
+          sum + (appointment.fee || 0),
         0,
       );
 
     const today = new Date().toISOString().split("T")[0];
 
     const todayAppointments = appointments.filter(
-      (appointment: any) => appointment.date === today,
+      (appointment: DashboardAppointment) => appointment.date === today,
     );
 
     const uniquePatients = new Map();
 
-    appointments.forEach((appointment: any) => {
+    appointments.forEach((appointment: DashboardAppointment) => {
       if (!uniquePatients.has(appointment.patientId)) {
         uniquePatients.set(appointment.patientId, {
           _id: appointment.patientId,

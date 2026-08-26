@@ -7,10 +7,7 @@ import RecentPatients from "@/components/dashboard/doctor/RecentPatients";
 import StatsCards from "@/components/dashboard/doctor/StatsCard";
 import TodayAppointments from "@/components/dashboard/doctor/Today'sAppointment";
 import DashboardHeader from "@/components/dashboard/Doctor-Header";
-import type {
-  DoctorDashboardData,
-  DoctorDashboardResponse,
-} from "@/types/doctor-dashboard";
+import type { DoctorDashboardResponse } from "@/types/doctor-dashboard";
 import { useEffect, useState } from "react";
 import { CalendarDays, Users, IndianRupee, Star } from "lucide-react";
 
@@ -75,6 +72,28 @@ export default function DoctorDashboard() {
   }
 
   if (data.onboarding) {
+    if (data.status === "rejected") {
+      return (
+        <div className="flex min-h-[70vh] items-center justify-center px-4">
+          <div className="w-full max-w-xl rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm sm:p-12">
+            <h1 className="text-3xl font-bold text-slate-950">
+              Application Not Approved
+            </h1>
+            <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-slate-600">
+              Unfortunately, your doctor application was not approved. Please
+              contact administration for more information.
+            </p>
+            <a
+              href="mailto:admin@carebridge.com"
+              className="mt-7 inline-flex rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+            >
+              Contact Admin
+            </a>
+          </div>
+        </div>
+      );
+    }
+
     if (data.status === "approved" && data.profileCompleted === false) {
       return <DoctorProfileSetup />;
     }
