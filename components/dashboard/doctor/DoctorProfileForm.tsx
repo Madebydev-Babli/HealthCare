@@ -120,6 +120,7 @@ type ExistingDoctor = Partial<ProfileForm> & {
   clinic?: Partial<ProfileForm["clinic"]>;
   availability?: Partial<ProfileForm["availability"]>;
   profileCompleted?: boolean;
+  status?: "pending" | "approved" | "rejected";
 };
 
 type Props = { mode: "create" | "edit" };
@@ -188,7 +189,8 @@ const inputClass =
 
 export default function DoctorProfileForm({ mode }: Props) {
   const router = useRouter();
-  const [initializing, setInitializing] = useState(mode === "edit");
+  const [formMode, setFormMode] = useState(mode);
+  const [initializing, setInitializing] = useState(true);
   const [message, setMessage] = useState<{
     type: "error" | "success";
     text: string;
@@ -210,33 +212,48 @@ export default function DoctorProfileForm({ mode }: Props) {
   const consultationMode = watch("consultationMode");
 
   useEffect(() => {
-    if (mode !== "edit") return;
+    setInitializing(true);
     fetch("/api/doctor/profile")
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok || !data.doctor)
           throw new Error(data.message || "Unable to load profile");
         const doctor: ExistingDoctor = data.doctor;
-        reset({
-          ...defaults,
-          ...doctor,
-          dob: doctor.dob
-            ? new Date(doctor.dob).toISOString().slice(0, 10)
-            : "",
-          languages: doctor.languages || [],
-          clinic: {
-            ...defaults.clinic,
-            ...doctor.clinic,
-            images: doctor.clinic?.images || [],
-            coordinates: {
-              ...defaults.clinic.coordinates,
-              ...doctor.clinic?.coordinates,
+        if (doctor.status && doctor.status !== "approved")
+          throw new Error("Your doctor account must be approved first");
+
+        const shouldEdit = mode === "edit" || doctor.profileCompleted === true;
+        setFormMode(shouldEdit ? "edit" : "create");
+        if (shouldEdit) {
+          reset({
+            ...defaults,
+            ...doctor,
+            dob: doctor.dob
+              ? new Date(doctor.dob).toISOString().slice(0, 10)
+              : "",
+            languages: doctor.languages || [],
+            clinic: {
+              ...defaults.clinic,
+              ...doctor.clinic,
+              images: doctor.clinic?.images || [],
+              coordinates: {
+                ...defaults.clinic.coordinates,
+                ...doctor.clinic?.coordinates,
+              },
             },
-          },
-          availability: { ...defaults.availability, ...doctor.availability },
-        } as ProfileForm);
+            availability: {
+              ...defaults.availability,
+              ...doctor.availability,
+            },
+          } as ProfileForm);
+        }
       })
-      .catch((error) => setMessage({ type: "error", text: error.message }))
+      .catch((error) =>
+        setMessage({
+          type: "error",
+          text: error instanceof Error ? error.message : "Unable to load profile",
+        }),
+      )
       .finally(() => setInitializing(false));
   }, [mode, reset]);
 
@@ -287,6 +304,7 @@ export default function DoctorProfileForm({ mode }: Props) {
       type: "success",
       text: data.message || "Profile saved successfully",
     });
+    await new Promise((resolve) => setTimeout(resolve, 600));
     router.push("/dashboard/doctor/profile");
     router.refresh();
   };
@@ -306,7 +324,7 @@ export default function DoctorProfileForm({ mode }: Props) {
           Doctor profile
         </p>
         <h1 className="mt-2 text-3xl font-bold text-slate-950">
-          {mode === "create" ? "Complete your profile" : "Edit your profile"}
+          {formMode === "create" ? "Complete your profile" : "Edit your profile"}
         </h1>
         <p className="mt-2 text-sm text-slate-600">
           Keep your professional details current so patients know how to reach
@@ -664,7 +682,7 @@ export default function DoctorProfileForm({ mode }: Props) {
             )}
             {isSubmitting
               ? "Saving..."
-              : mode === "create"
+              : formMode === "create"
                 ? "Create profile"
                 : "Save changes"}
           </button>
