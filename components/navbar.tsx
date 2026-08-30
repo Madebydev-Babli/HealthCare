@@ -40,7 +40,7 @@ export function Navbar() {
           <div>
             <h1 className="text-lg font-bold text-white">{clinicName}</h1>
 
-            <p className="text-xs text-slate-400">Smart Healthcare</p>
+            <p className="text-xs text-slate-400">Smart Care</p>
           </div>
         </Link>
 
