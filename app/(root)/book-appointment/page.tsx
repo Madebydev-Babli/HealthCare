@@ -26,6 +26,20 @@ export default function AppointmentPage() {
   const [doctorIdFromUrl, setDoctorIdFromUrl] = useState<string | null>(null);
 
   // read query param on client-side only to avoid prerender errors
+  
+  if (!loading && doctors.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="max-w-xl text-center">
+          <h2 className="text-2xl font-semibold">No doctors available</h2>
+          <p className="mt-2 text-slate-600">There are no approved doctors available right now. Please check back later.</p>
+          <div className="mt-6">
+            <a href="/" className="inline-block rounded-lg border border-slate-200 px-4 py-2">Back to Home</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
   useEffect(() => {
     if (typeof window === "undefined") return;
 

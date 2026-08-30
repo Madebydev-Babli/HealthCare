@@ -6,7 +6,7 @@ import type {
   Testimonial,
 } from "@/types/home";
 
-export const clinicName = "CareBridge Clinic";
+export const clinicName = "HealthCare";
 export const clinicTagline = "Compassionate care for every stage of life.";
 
 export const navLinks: NavLink[] = [

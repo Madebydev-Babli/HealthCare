@@ -115,11 +115,20 @@ export async function GET() {
 
     let appointments = [];
 
-    // ✅ Doctor appointments
+    // ✅ Doctor appointments (doctorId in Appointment references Doctor profile _id)
     if (session.user.role === "doctor") {
-      appointments = await Appointment.find({
-        doctorId: session.user.id,
-      }).sort({ createdAt: -1 });
+      // Resolve the doctor's profile by the logged-in user's id
+      const doctorProfile = await DoctorProfile.findOne({
+        userId: session.user.id,
+      });
+
+      if (doctorProfile) {
+        appointments = await Appointment.find({
+          doctorId: doctorProfile._id.toString(),
+        }).sort({ createdAt: -1 });
+      } else {
+        appointments = [];
+      }
     }
 
     // ✅ Patient appointments
