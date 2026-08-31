@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Practice",
-  description: "Modern clinic management and patient care platform",
+  title: "Healthcare",
+  description:
+    "Modern healthcare management platform for patients, doctors, and clinic teams.",
 };
 
 export default function RootLayout({

@@ -6,8 +6,9 @@ import type {
   Testimonial,
 } from "@/types/home";
 
-export const clinicName = "HealthCare";
-export const clinicTagline = "Compassionate care for every stage of life.";
+export const clinicName = "Healthcare";
+export const clinicTagline =
+  "Modern healthcare management for patients and healthcare professionals.";
 
 export const navLinks: NavLink[] = [
   {
@@ -16,15 +17,19 @@ export const navLinks: NavLink[] = [
   },
   {
     href: "/doctors",
-    label: "Find Doctors",
+    label: "Doctors",
   },
   {
     href: "/appointments",
     label: "Appointments",
   },
   {
-    href: "/health-records",
-    label: "Records",
+    href: "/#about",
+    label: "About",
+  },
+  {
+    href: "/#contact",
+    label: "Contact",
   },
 ];
 export const services: Service[] = [

@@ -2,7 +2,6 @@ import { connectDB } from "@/lib/db";
 import Doctor from "@/lib/models/doctor";
 
 import DoctorHero from "@/components/doctors/DoctorHero";
-import DoctorsSection from "@/components/doctors/DoctorSection";
 
 async function getDoctors() {
   await connectDB();
@@ -39,8 +38,7 @@ export default async function DoctorsPage() {
 
   return (
     <>
-      <DoctorHero />
-      <DoctorsSection doctors={doctors} />
+      <DoctorHero doctors={doctors} />
     </>
   );
 }

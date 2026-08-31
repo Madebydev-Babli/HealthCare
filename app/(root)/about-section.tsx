@@ -1,121 +1,275 @@
 "use client";
 
-import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
+  ArrowRight,
+  CalendarCheck2,
   CheckCircle2,
-  ArrowUpRight,
-  HeartPulse,
+  Clock3,
+  HeartHandshake,
+  ShieldCheck,
+  Stethoscope,
+  UserRoundPlus,
   Users,
-  Award,
+  BriefcaseMedical,
+  ClipboardList,
 } from "lucide-react";
 
+const patientSteps = [
+  {
+    icon: Stethoscope,
+    title: "Find a Doctor",
+    description:
+      "Explore verified specialists and choose the right fit for your needs.",
+  },
+  {
+    icon: CalendarCheck2,
+    title: "Choose a Time",
+    description:
+      "Review availability and select a convenient appointment slot.",
+  },
+  {
+    icon: Clock3,
+    title: "Book Your Appointment",
+    description:
+      "Confirm your visit and stay updated with your appointment status.",
+  },
+];
+
+const doctorSteps = [
+  {
+    icon: UserRoundPlus,
+    title: "Create Your Profile",
+    description:
+      "Set up your professional profile, qualifications, and availability.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Get Approved by Admin",
+    description:
+      "Your professional profile is reviewed before you begin managing patients.",
+  },
+  {
+    icon: BriefcaseMedical,
+    title: "Manage Appointments and Patients",
+    description:
+      "Track visits, patient records, and care schedules from one workspace.",
+  },
+];
+
+const features = [
+  {
+    icon: CalendarCheck2,
+    title: "Easy Appointment Booking",
+    description:
+      "Patients can discover doctors and schedule appointments without complicated forms or delays.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Verified Doctors",
+    description:
+      "Patients connect with professionals whose profiles and credentials are reviewed within the platform.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Doctor Dashboard",
+    description:
+      "Doctors can manage appointments, patients, earnings, and profile details from a single dashboard.",
+  },
+  {
+    icon: Users,
+    title: "Patient Management",
+    description:
+      "Doctors can review patient activity and keep their care journey organized.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Appointment Tracking",
+    description:
+      "Patients and doctors can monitor the status of visits and stay informed.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Secure Healthcare Platform",
+    description:
+      "Healthcare keeps account access, appointment data, and platform information protected.",
+  },
+];
+
 export default function About() {
-  const features = [
-    "Experienced Medical Specialists",
-    "Modern Diagnostic Equipment",
-    "Digital Patient Records",
-    "Online Appointment Management",
-  ];
-
   return (
-    <section className="bg-[#f7f6f3] py-24">
-      <div className="container mx-auto px-6">
-        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-          {/* Left Image */}
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative"
-          >
-            <div className="overflow-hidden rounded-[32px]">
-              <Image
-                src="/clinic.jpg"
-                alt="Clinic"
-                width={800}
-                height={1000}
-                className="h-[600px] w-full object-cover"
-              />
+    <section
+      id="about"
+      className="bg-slate-50 py-20 text-slate-900 dark:bg-slate-950 dark:text-slate-100"
+    >
+      <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mx-auto max-w-3xl text-center"
+        >
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-600">
+            Healthcare Platform
+          </p>
+          <h2 className="mt-4 text-4xl font-bold tracking-tight text-slate-900 md:text-5xl dark:text-white">
+            Built to connect care, scheduling, and clinic operations.
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">
+            Healthcare brings patients, doctors, and care teams into one secure
+            workflow so appointments, profiles, and health management stay
+            organized and accessible.
+          </p>
+        </motion.div>
+
+        <div className="mt-16 grid gap-8 lg:grid-cols-2">
+          <div className="rounded-[30px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
+            <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-300">
+              <Stethoscope size={16} />
+              For Patients
             </div>
 
-            {/* Floating Card */}
-            <div className="absolute -bottom-8 left-8 rounded-3xl bg-white p-6 shadow-xl">
-              <div className="flex items-center gap-4">
-                <div className="rounded-2xl bg-cyan-100 p-4">
-                  <HeartPulse className="text-cyan-600" />
-                </div>
+            <h3 className="mt-6 text-3xl font-bold text-slate-900 dark:text-white">
+              Find care and book with confidence.
+            </h3>
 
-                <div>
-                  <h3 className="text-2xl font-bold">15+</h3>
-                  <p className="text-gray-500">Years of Excellence</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right Content */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <span className="text-sm uppercase tracking-[0.3em] text-gray-500">
-              About Our Clinic
-            </span>
-
-            <h2 className="mt-4 text-4xl font-bold leading-tight text-gray-900 md:text-6xl">
-              Excellence In
-              <br />
-              Healthcare With
-              <br />
-              Compassion
-            </h2>
-
-            <p className="mt-6 text-lg leading-relaxed text-gray-600">
-              We combine modern healthcare technology with personalized patient
-              care to provide a seamless clinic experience. From appointments
-              and medical records to treatment management, everything is
-              designed around patient comfort and efficiency.
-            </p>
-
-            <div className="mt-8 grid gap-4">
-              {features.map((item) => (
-                <div key={item} className="flex items-center gap-3">
-                  <CheckCircle2 size={20} className="text-cyan-600" />
-                  <span className="text-gray-700">{item}</span>
+            <div className="mt-8 space-y-5">
+              {patientSteps.map(({ icon: Icon, title, description }, index) => (
+                <div
+                  key={title}
+                  className="flex gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/60"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
+                    <Icon size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-cyan-600">
+                      Step {index + 1}
+                    </p>
+                    <h4 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">
+                      {title}
+                    </h4>
+                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                      {description}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
 
-            <button className="mt-10 flex items-center gap-2 rounded-full bg-black px-7 py-4 text-white transition hover:scale-105">
-              Learn More
-              <ArrowUpRight size={18} />
-            </button>
-          </motion.div>
+          <div className="rounded-[30px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+              <BriefcaseMedical size={16} />
+              For Doctors
+            </div>
+
+            <h3 className="mt-6 text-3xl font-bold text-slate-900 dark:text-white">
+              Grow your practice with one streamlined workspace.
+            </h3>
+
+            <div className="mt-8 space-y-5">
+              {doctorSteps.map(({ icon: Icon, title, description }, index) => (
+                <div
+                  key={title}
+                  className="flex gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/60"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                    <Icon size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-indigo-600">
+                      Step {index + 1}
+                    </p>
+                    <h4 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">
+                      {title}
+                    </h4>
+                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                      {description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="mt-32 grid gap-6 md:grid-cols-3">
-          <div className="rounded-[30px] bg-white p-8 shadow-sm">
-            <Users className="mb-4 text-cyan-600" />
-
-            <h3 className="text-4xl font-bold">25K+</h3>
-            <p className="mt-2 text-gray-500">Happy Patients</p>
+        <div className="mt-20">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-600">
+              Platform Features
+            </p>
+            <h3 className="mt-4 text-4xl font-bold text-slate-900 dark:text-white">
+              Everything you need to run care smoothly.
+            </h3>
           </div>
 
-          <div className="rounded-[30px] bg-white p-8 shadow-sm">
-            <Award className="mb-4 text-cyan-600" />
+          <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {features.map(({ icon: Icon, title, description }) => (
+              <motion.div
+                key={title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900/80"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
+                  <Icon size={20} />
+                </div>
+                <h4 className="mt-5 text-xl font-semibold text-slate-900 dark:text-white">
+                  {title}
+                </h4>
+                <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                  {description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
 
-            <h3 className="text-4xl font-bold">50+</h3>
-            <p className="mt-2 text-gray-500">Medical Experts</p>
+        <div className="mt-20 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-[30px] border border-cyan-100 bg-cyan-50 p-8 dark:border-cyan-900/60 dark:bg-cyan-950/30">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700 dark:text-cyan-300">
+              For Patients
+            </p>
+            <h3 className="mt-4 text-3xl font-bold text-slate-900 dark:text-white">
+              Your next appointment is just a few clicks away.
+            </h3>
+            <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">
+              Find the right healthcare professional and book your consultation
+              without the hassle.
+            </p>
+            <Link
+              href="/book-appointment"
+              className="mt-7 inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white transition hover:bg-cyan-700"
+            >
+              Book an Appointment
+              <ArrowRight size={18} />
+            </Link>
           </div>
 
-          <div className="rounded-[30px] bg-white p-8 shadow-sm">
-            <HeartPulse className="mb-4 text-cyan-600" />
-
-            <h3 className="text-4xl font-bold">98%</h3>
-            <p className="mt-2 text-gray-500">Patient Satisfaction</p>
+          <div
+            id="contact"
+            className="rounded-[30px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/80"
+          >
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+              For Professionals
+            </p>
+            <h3 className="mt-4 text-3xl font-bold text-slate-900 dark:text-white">
+              Are you a healthcare professional?
+            </h3>
+            <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">
+              Join Healthcare and manage your appointments, patients, and
+              professional profile from one place.
+            </p>
+            <Link
+              href="/auth/signup"
+              className="mt-7 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-5 py-3 font-semibold text-slate-900 transition hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+            >
+              Join as a Doctor
+              <ArrowRight size={18} />
+            </Link>
           </div>
         </div>
       </div>

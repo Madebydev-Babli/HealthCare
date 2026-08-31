@@ -1,29 +1,90 @@
+import Link from "next/link";
+
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-50 py-10 dark:border-slate-800 dark:bg-slate-950">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 text-sm text-slate-600 lg:px-8 dark:text-slate-300">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <p className="font-semibold text-slate-800 dark:text-slate-100">
-            CareBridge Clinic
-          </p>
-          <div className="flex gap-4">
-            <a href="#about" className="transition hover:text-blue-600">
-              About
-            </a>
-            <a href="#services" className="transition hover:text-blue-600">
-              Services
-            </a>
-            <a href="#doctors" className="transition hover:text-blue-600">
-              Doctors
-            </a>
-            <a href="#contact" className="transition hover:text-blue-600">
-              Contact
-            </a>
+    <footer className="border-t border-slate-200 bg-slate-50 py-12 text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+      <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
+        <div className="grid gap-10 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-lg font-bold text-cyan-600 dark:text-cyan-400">
+                H
+              </div>
+              <div>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">
+                  Healthcare
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-4 max-w-md text-sm leading-7 text-slate-600 dark:text-slate-300">
+              Modern healthcare management for patients and healthcare
+              professionals.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+              Explore
+            </h3>
+            <div className="mt-4 flex flex-col gap-3 text-sm">
+              <Link
+                href="/"
+                className="transition hover:text-cyan-600 dark:hover:text-cyan-400"
+              >
+                Home
+              </Link>
+              <Link
+                href="/doctors"
+                className="transition hover:text-cyan-600 dark:hover:text-cyan-400"
+              >
+                Doctors
+              </Link>
+              <Link
+                href="/appointments"
+                className="transition hover:text-cyan-600 dark:hover:text-cyan-400"
+              >
+                Appointments
+              </Link>
+              <Link
+                href="/#about"
+                className="transition hover:text-cyan-600 dark:hover:text-cyan-400"
+              >
+                About
+              </Link>
+              <Link
+                href="/#contact"
+                className="transition hover:text-cyan-600 dark:hover:text-cyan-400"
+              >
+                Contact
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+              Account
+            </h3>
+            <div className="mt-4 flex flex-col gap-3 text-sm">
+              <Link
+                href="/auth/login"
+                className="transition hover:text-cyan-600 dark:hover:text-cyan-400"
+              >
+                Login
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="transition hover:text-cyan-600 dark:hover:text-cyan-400"
+              >
+                Sign Up
+              </Link>
+            </div>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <p>Follow us: Facebook | Instagram | LinkedIn</p>
-          <p>© {new Date().getFullYear()} CareBridge Clinic. All rights reserved.</p>
+
+        <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Healthcare. All rights reserved.</p>
+          <p>Healthcare for patients, doctors, and clinics.</p>
         </div>
       </div>
     </footer>

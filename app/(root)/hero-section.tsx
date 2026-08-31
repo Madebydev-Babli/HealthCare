@@ -8,7 +8,11 @@ import { Calendar, Users, Stethoscope, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function Hero() {
-  const [stats, setStats] = useState<{ doctors?: number; patients?: number; appointments?: number } | null>(null);
+  const [stats, setStats] = useState<{
+    doctors?: number;
+    patients?: number;
+    appointments?: number;
+  } | null>(null);
 
   const { data: session, status: authStatus } = useSession();
 
@@ -21,10 +25,15 @@ export default function Hero() {
 
     (async () => {
       try {
-        const res = await fetch('/api/admin/stats');
+        const res = await fetch("/api/admin/stats");
         if (!res.ok) return;
         const data = await res.json();
-        if (mounted) setStats({ doctors: data.doctors, patients: data.patients, appointments: data.appointments });
+        if (mounted)
+          setStats({
+            doctors: data.doctors,
+            patients: data.patients,
+            appointments: data.appointments,
+          });
       } catch (err) {
         // ignore
       }
@@ -89,7 +98,7 @@ export default function Hero() {
       setApptError(null);
 
       try {
-        const res = await fetch('/api/appointments');
+        const res = await fetch("/api/appointments");
 
         if (res.status === 401) {
           // treat as unauthenticated
@@ -116,11 +125,10 @@ export default function Hero() {
             __dt: parseApptDate(a.date, a.time),
           }))
           .sort((x: any, y: any) => x.__dt.getTime() - y.__dt.getTime());
-        
 
-          if (mounted) {
-            setUpcoming(valid.length > 0 ? valid[0] : null);
-          }
+        if (mounted) {
+          setUpcoming(valid.length > 0 ? valid[0] : null);
+        }
       } catch (err: any) {
         console.error(err);
         if (mounted) setApptError("Failed to load appointments");
@@ -160,7 +168,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               className="inline-block rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-md"
             >
-               Clinic Management System
+              Modern Healthcare Management
             </motion.span>
 
             <motion.h1
@@ -169,9 +177,9 @@ export default function Hero() {
               transition={{ delay: 0.2 }}
               className="mt-6 text-5xl font-bold leading-tight md:text-7xl"
             >
-              Modern Healthcare
+              Healthcare,
               <br />
-              <span className="text-cyan-400">Management</span>
+              <span className="text-cyan-400">Simplified.</span>
             </motion.h1>
 
             <motion.p
@@ -180,8 +188,9 @@ export default function Hero() {
               transition={{ delay: 0.4 }}
               className="mt-6 max-w-xl text-lg text-gray-200"
             >
-              Manage appointments, doctors, patients, billing, prescriptions and
-              reports from a single dashboard.
+              Book appointments, connect with verified doctors, manage your
+              healthcare journey, and simplify clinic operations — all from one
+              secure platform.
             </motion.p>
 
             <motion.div
@@ -190,13 +199,19 @@ export default function Hero() {
               transition={{ delay: 0.6 }}
               className="mt-8 flex flex-wrap gap-4"
             >
-              <Link href="/book-appointment" className="flex items-center gap-2 rounded-xl bg-cyan-500 px-6 py-4 font-semibold text-white transition hover:bg-cyan-600">
-                Book Appointment
+              <Link
+                href="/book-appointment"
+                className="flex items-center gap-2 rounded-xl bg-cyan-500 px-6 py-4 font-semibold text-white transition hover:bg-cyan-600"
+              >
+                Book an Appointment
                 <ArrowRight size={18} />
               </Link>
 
-              <Link href="#services" className="rounded-xl border border-white/20 bg-white/10 px-6 py-4 backdrop-blur-md">
-                Explore Services
+              <Link
+                href="/doctors"
+                className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 font-semibold text-white backdrop-blur-md transition hover:bg-white/10"
+              >
+                Find a Doctor
               </Link>
             </motion.div>
 
@@ -213,7 +228,9 @@ export default function Hero() {
               </div>
 
               <div>
-                <h3 className="text-3xl font-bold">{stats?.appointments ?? "—"}</h3>
+                <h3 className="text-3xl font-bold">
+                  {stats?.appointments ?? "—"}
+                </h3>
                 <p className="text-gray-300">Appointments</p>
               </div>
             </div>
@@ -236,48 +253,94 @@ export default function Hero() {
 
             <div>
               <h3 className="font-semibold text-white">Upcoming Appointment</h3>
-              <p className="text-sm text-gray-300">Stay updated with your schedule</p>
+              <p className="text-sm text-gray-300">
+                Stay updated with your schedule
+              </p>
             </div>
           </div>
 
           <div className="space-y-4">
             {apptLoading ? (
               <div className="rounded-xl bg-white/10 p-4">
-                <p className="text-white font-medium">Loading upcoming appointment...</p>
+                <p className="text-white font-medium">
+                  Loading upcoming appointment...
+                </p>
               </div>
             ) : apptError ? (
               <div className="rounded-xl bg-white/10 p-4">
-                <p className="text-white font-medium">Unable to load appointments</p>
+                <p className="text-white font-medium">
+                  Unable to load appointments
+                </p>
                 <p className="text-sm text-gray-300">Please try again later.</p>
               </div>
             ) : upcoming ? (
               <div className="rounded-xl bg-white/10 p-4">
                 {session?.user?.role === "doctor" ? (
                   <>
-                    <p className="text-white font-medium">{upcoming.patientName}</p>
+                    <p className="text-white font-medium">
+                      {upcoming.patientName}
+                    </p>
                     <p className="text-sm text-gray-300">
-                      {upcoming.__dt instanceof Date ? upcoming.__dt.toLocaleDateString() : upcoming.date} • {upcoming.__dt instanceof Date ? upcoming.__dt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : upcoming.time}
+                      {upcoming.__dt instanceof Date
+                        ? upcoming.__dt.toLocaleDateString()
+                        : upcoming.date}{" "}
+                      •{" "}
+                      {upcoming.__dt instanceof Date
+                        ? upcoming.__dt.toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })
+                        : upcoming.time}
                     </p>
                   </>
                 ) : (
                   <>
-                    <p className="text-white font-medium">Dr. {upcoming.doctorName}</p>
+                    <p className="text-white font-medium">
+                      Dr. {upcoming.doctorName}
+                    </p>
                     <p className="text-sm text-gray-300">
-                      {(upcoming.specialization || upcoming.doctor?.fieldOfMedical) ? `${upcoming.specialization || upcoming.doctor?.fieldOfMedical} • ` : ''}{upcoming.__dt instanceof Date ? upcoming.__dt.toLocaleDateString() : upcoming.date} • {upcoming.__dt instanceof Date ? upcoming.__dt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : upcoming.time}
+                      {upcoming.specialization ||
+                      upcoming.doctor?.fieldOfMedical
+                        ? `${upcoming.specialization || upcoming.doctor?.fieldOfMedical} • `
+                        : ""}
+                      {upcoming.__dt instanceof Date
+                        ? upcoming.__dt.toLocaleDateString()
+                        : upcoming.date}{" "}
+                      •{" "}
+                      {upcoming.__dt instanceof Date
+                        ? upcoming.__dt.toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })
+                        : upcoming.time}
                     </p>
                   </>
                 )}
               </div>
             ) : (
               <div className="rounded-xl bg-white/10 p-4">
-                <p className="text-white font-medium">No upcoming appointments</p>
-                <p className="text-sm text-gray-300">You have no scheduled appointments.</p>
+                <p className="text-white font-medium">
+                  No upcoming appointments
+                </p>
+                <p className="text-sm text-gray-300">
+                  You have no scheduled appointments.
+                </p>
 
                 <div className="mt-3">
                   {session?.user?.role === "doctor" ? (
-                    <Link href="/dashboard/doctor" className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white">View Schedule</Link>
+                    <Link
+                      href="/dashboard/doctor"
+                      className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      View Schedule
+                    </Link>
                   ) : (
-                    <Link href="/book-appointment" className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white">Book an Appointment</Link>
+                    <Link
+                      href="/book-appointment"
+                      className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      Book an Appointment
+                    </Link>
                   )}
                 </div>
               </div>
