@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   BadgeCheck,
   Briefcase,
@@ -12,7 +13,14 @@ import {
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function DoctorModal({ doctor, open, onOpenChange }: any) {
+  const router = useRouter();
+
   if (!doctor) return null;
+
+  const handleBookAppointment = () => {
+    onOpenChange(false);
+    router.push(`/book-appointment?doctorId=${doctor._id}`);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,7 +69,9 @@ export default function DoctorModal({ doctor, open, onOpenChange }: any) {
 
               {/* Fee Card */}
               <div className="rounded-3xl border border-cyan-100 bg-cyan-50 px-8 py-6 text-center">
-                <p className="text-sm text-slate-500">Consultation Fee</p>
+                <p className="text-sm text-slate-500">
+                  Consultation Fee
+                </p>
 
                 <h3 className="mt-2 text-4xl font-bold text-cyan-600">
                   ₹{doctor.appointmentFee}
@@ -74,7 +84,9 @@ export default function DoctorModal({ doctor, open, onOpenChange }: any) {
               <div className="rounded-2xl border border-slate-200 p-4">
                 <GraduationCap size={20} className="mb-2 text-cyan-500" />
 
-                <p className="text-sm text-slate-500">Qualification</p>
+                <p className="text-sm text-slate-500">
+                  Qualification
+                </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
                   {doctor.degree}
@@ -84,7 +96,9 @@ export default function DoctorModal({ doctor, open, onOpenChange }: any) {
               <div className="rounded-2xl border border-slate-200 p-4">
                 <Briefcase size={20} className="mb-2 text-cyan-500" />
 
-                <p className="text-sm text-slate-500">Experience</p>
+                <p className="text-sm text-slate-500">
+                  Experience
+                </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
                   {doctor.experience} Years
@@ -94,7 +108,9 @@ export default function DoctorModal({ doctor, open, onOpenChange }: any) {
               <div className="rounded-2xl border border-slate-200 p-4">
                 <IndianRupee size={20} className="mb-2 text-cyan-500" />
 
-                <p className="text-sm text-slate-500">Appointment Fee</p>
+                <p className="text-sm text-slate-500">
+                  Appointment Fee
+                </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
                   ₹{doctor.appointmentFee}
@@ -104,7 +120,9 @@ export default function DoctorModal({ doctor, open, onOpenChange }: any) {
               <div className="rounded-2xl border border-slate-200 p-4">
                 <BadgeCheck size={20} className="mb-2 text-cyan-500" />
 
-                <p className="text-sm text-slate-500">License Number</p>
+                <p className="text-sm text-slate-500">
+                  License Number
+                </p>
 
                 <p className="mt-1 break-all font-semibold text-slate-900">
                   {doctor.licenseNumber}
@@ -155,7 +173,10 @@ export default function DoctorModal({ doctor, open, onOpenChange }: any) {
                 Close
               </button>
 
-              <button className="flex-1 rounded-2xl bg-cyan-500 py-4 font-semibold text-white transition hover:bg-cyan-600">
+              <button
+                onClick={handleBookAppointment}
+                className="flex-1 rounded-2xl bg-cyan-500 py-4 font-semibold text-white transition hover:bg-cyan-600"
+              >
                 Book Appointment
               </button>
             </div>
@@ -165,3 +186,4 @@ export default function DoctorModal({ doctor, open, onOpenChange }: any) {
     </Dialog>
   );
 }
+

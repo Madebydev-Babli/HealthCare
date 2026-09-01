@@ -35,41 +35,41 @@ export function DoctorsSection() {
   }, []);
 
   return (
-    <section id="doctors" className="bg-white py-20 dark:bg-slate-950">
+    <section id="doctors" className="bg-white py-20">
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300">
+            <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700">
               <Stethoscope size={16} />
               Meet Our Doctors
             </div>
-            <h2 className="mt-5 text-4xl font-bold tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            <h2 className="mt-5 text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
               Trusted specialists, ready to care.
             </h2>
           </div>
 
           <Link
             href="/doctors"
-            className="inline-flex items-center gap-2 text-base font-semibold text-cyan-700 transition hover:text-cyan-600 dark:text-cyan-300 dark:hover:text-cyan-200"
+            className="inline-flex items-center gap-2 text-base font-semibold text-cyan-700 transition hover:text-cyan-600"
           >
             View All Doctors
             <ArrowRight size={18} />
           </Link>
         </div>
 
-        <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+        <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
           Connect with experienced doctors whose profiles are reviewed and
           approved for patient care.
         </p>
 
         {loading && (
-          <div className="mt-10 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+          <div className="mt-10 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-12 text-center text-slate-500">
             Loading verified doctors...
           </div>
         )}
 
         {!loading && doctors?.length === 0 && (
-          <div className="mt-10 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-12 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+          <div className="mt-10 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-12 text-center text-slate-600">
             No doctors available right now.
           </div>
         )}
@@ -91,7 +91,7 @@ export function DoctorsSection() {
         <div className="mt-12 flex items-center justify-center">
           <Link
             href="/doctors"
-            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-600 dark:hover:bg-cyan-500"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             <Search size={16} />
             Explore Doctors
@@ -109,3 +109,4 @@ export function DoctorsSection() {
     </section>
   );
 }
+

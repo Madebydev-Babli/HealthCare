@@ -27,10 +27,6 @@ export const navLinks: NavLink[] = [
     href: "/#about",
     label: "About",
   },
-  {
-    href: "/#contact",
-    label: "Contact",
-  },
 ];
 export const services: Service[] = [
   {

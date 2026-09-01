@@ -1,7 +1,13 @@
 import { connectDB } from "@/lib/db";
 import Appointment from "@/lib/models/appointment";
 
-const allowedStatuses = ["pending", "approved", "rejected", "completed"];
+const allowedStatuses = [
+  "pending",
+  "approved",
+  "rejected",
+  "completed",
+  "cancelled",
+];
 
 export async function PUT(
   req: Request,

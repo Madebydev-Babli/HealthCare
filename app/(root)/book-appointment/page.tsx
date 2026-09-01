@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, CheckCircle2, Clock3, ShieldCheck, Star, Stethoscope } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  Calendar,
+  CheckCircle2,
+  Clock3,
+  ShieldCheck,
+  Star,
+  Stethoscope,
+  AlertCircle,
+} from "lucide-react";
+import { useToast } from "@/hooks/useToast";
 
 type Doctor = {
   _id: string;
@@ -33,6 +43,8 @@ export default function AppointmentPage() {
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
   const [doctorIdFromUrl, setDoctorIdFromUrl] = useState<string | null>(null);
+  const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -50,11 +62,17 @@ export default function AppointmentPage() {
         setDoctors(list);
 
         if (doctorIdFromUrl) {
-          const foundDoctor = list.find((doc: Doctor) => doc._id === doctorIdFromUrl);
-          if (foundDoctor) setSelectedDoctor(foundDoctor);
+          const foundDoctor = list.find(
+            (doc: Doctor) => doc._id === doctorIdFromUrl,
+          );
+          if (foundDoctor) {
+            setSelectedDoctor(foundDoctor);
+            // Toast call removed from useEffect to prevent duplication
+            // Instead, show a subtle indication via UI state
+          }
         }
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching doctors:", error);
       } finally {
         setLoading(false);
       }
@@ -75,8 +93,18 @@ export default function AppointmentPage() {
   }, [selectedDoctor]);
 
   const handleBook = async () => {
-    if (!selectedDoctor || !date || !time) {
-      alert("Please fill all fields");
+    if (!selectedDoctor) {
+      toast.warning("Please select a doctor");
+      return;
+    }
+
+    if (!date) {
+      toast.warning("Please select a date");
+      return;
+    }
+
+    if (!time) {
+      toast.warning("Please select a time slot");
       return;
     }
 
@@ -96,17 +124,32 @@ export default function AppointmentPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.message || "Booking failed");
+        if (data.message?.includes("already booked")) {
+          toast.error(
+            "This time slot is already booked. Please choose another.",
+          );
+        } else if (data.message?.includes("not approved")) {
+          toast.error("This doctor is not available for appointments.");
+        } else {
+          toast.error(data.message || "Booking failed. Please try again.");
+        }
         return;
       }
 
-      alert("Appointment booked successfully!");
+      toast.success("Appointment booked successfully!");
+
+      // Reset form and redirect to appointments
       setDate("");
       setTime("");
       if (!doctorIdFromUrl) setSelectedDoctor(null);
+
+      // Redirect to appointments page after a short delay
+      setTimeout(() => {
+        router.push("/appointments");
+      }, 1500);
     } catch (error) {
-      console.log(error);
-      alert("Something went wrong");
+      console.error("Booking error:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setBooking(false);
     }
@@ -114,8 +157,11 @@ export default function AppointmentPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-lg font-medium text-slate-600">
-        Loading doctors...
+      <div className="flex min-h-[60vh] items-center justify-center bg-slate-50 text-lg font-medium text-slate-600">
+        <div className="text-center">
+          <Stethoscope className="mx-auto mb-3 h-10 w-10 animate-pulse text-cyan-500" />
+          Loading doctors...
+        </div>
       </div>
     );
   }
@@ -124,9 +170,19 @@ export default function AppointmentPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
         <div className="max-w-xl rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h2 className="text-2xl font-bold text-slate-900">No doctors available</h2>
-          <p className="mt-3 text-slate-600">There are no approved doctors available right now. Please check back later.</p>
-          <a href="/" className="mt-6 inline-flex items-center rounded-2xl border border-slate-200 px-4 py-2.5 font-medium text-slate-700 transition hover:bg-slate-100">Back to Home</a>
+          <h2 className="text-2xl font-bold text-slate-900">
+            No doctors available
+          </h2>
+          <p className="mt-3 text-slate-600">
+            There are no approved doctors available right now. Please check back
+            later.
+          </p>
+          <a
+            href="/"
+            className="mt-6 inline-flex items-center rounded-2xl border border-slate-200 px-4 py-2.5 font-medium text-slate-700 transition hover:bg-slate-100"
+          >
+            Back to Home
+          </a>
         </div>
       </div>
     );
@@ -136,16 +192,27 @@ export default function AppointmentPage() {
     <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-600">Booking</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-900">Book an Appointment</h1>
-          <p className="mt-3 text-slate-600">Choose a doctor, select a date, and confirm your visit in a few simple steps.</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-600">
+            Booking
+          </p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
+            Book an Appointment
+          </h1>
+          <p className="mt-3 text-slate-600">
+            Choose a doctor, select a date, and confirm your visit in a few
+            simple steps.
+          </p>
         </div>
 
         {!doctorIdFromUrl && (
           <section className="mt-8">
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700"><Stethoscope size={18} /></div>
-              <h2 className="text-2xl font-bold text-slate-900">1. Choose a doctor</h2>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700">
+                <Stethoscope size={18} />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900">
+                1. Choose a doctor
+              </h2>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -161,7 +228,11 @@ export default function AppointmentPage() {
                   }`}
                 >
                   <div className="relative h-52">
-                    <img src={doctor.image || "/clinic.jpg"} alt={doctor.name} className="h-full w-full object-cover" />
+                    <img
+                      src={doctor.image || "/clinic.jpg"}
+                      alt={doctor.name}
+                      className="h-full w-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
                     <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
                       <ShieldCheck size={12} />
@@ -170,15 +241,27 @@ export default function AppointmentPage() {
                   </div>
 
                   <div className="p-5">
-                    <h3 className="text-2xl font-bold text-slate-900">{doctor.name}</h3>
-                    <p className="mt-1 text-sm font-medium text-cyan-700">{doctor.fieldOfMedical}</p>
+                    <h3 className="text-2xl font-bold text-slate-900">
+                      {doctor.name}
+                    </h3>
+                    <p className="mt-1 text-sm font-medium text-cyan-700">
+                      {doctor.fieldOfMedical}
+                    </p>
 
                     <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-600">
-                      <span className="inline-flex items-center gap-1.5"><Star size={14} className="text-yellow-500" /> {doctor.experience} yrs</span>
-                      <span className="font-semibold text-slate-900">₹{doctor.appointmentFee}</span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Star size={14} className="text-yellow-500" />{" "}
+                        {doctor.experience} yrs
+                      </span>
+                      <span className="font-semibold text-slate-900">
+                        ₹{doctor.appointmentFee}
+                      </span>
                     </div>
 
-                    <p className="mt-4 line-clamp-2 text-sm leading-6 text-slate-600">{doctor.appointmentDetails || "Consultation available for patient care and follow-up."}</p>
+                    <p className="mt-4 line-clamp-2 text-sm leading-6 text-slate-600">
+                      {doctor.appointmentDetails ||
+                        "Consultation available for patient care and follow-up."}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -191,8 +274,12 @@ export default function AppointmentPage() {
             <div className="space-y-6">
               <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700"><Calendar size={18} /></div>
-                  <h2 className="text-2xl font-bold text-slate-900">2. Choose a date</h2>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700">
+                    <Calendar size={18} />
+                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    2. Choose a date
+                  </h2>
                 </div>
                 <input
                   type="date"
@@ -205,8 +292,12 @@ export default function AppointmentPage() {
 
               <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700"><Clock3 size={18} /></div>
-                  <h2 className="text-2xl font-bold text-slate-900">3. Choose a time</h2>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700">
+                    <Clock3 size={18} />
+                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    3. Choose a time
+                  </h2>
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-3">
@@ -230,23 +321,55 @@ export default function AppointmentPage() {
 
             <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700"><CheckCircle2 size={18} /></div>
-                <h2 className="text-2xl font-bold text-slate-900">4. Confirm</h2>
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700">
+                  <CheckCircle2 size={18} />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900">
+                  4. Confirm
+                </h2>
               </div>
 
               <div className="mt-6 flex items-center gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
-                <img src={selectedDoctor.image || "/clinic.jpg"} alt={selectedDoctor.name} className="h-16 w-16 rounded-2xl object-cover" />
+                <img
+                  src={selectedDoctor.image || "/clinic.jpg"}
+                  alt={selectedDoctor.name}
+                  className="h-16 w-16 rounded-2xl object-cover"
+                />
                 <div>
-                  <p className="text-xl font-bold text-slate-900">{selectedDoctor.name}</p>
-                  <p className="text-sm text-slate-500">{selectedDoctor.fieldOfMedical}</p>
+                  <p className="text-xl font-bold text-slate-900">
+                    {selectedDoctor.name}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {selectedDoctor.fieldOfMedical}
+                  </p>
                 </div>
               </div>
 
               <div className="mt-6 space-y-3 text-sm text-slate-600">
-                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"><span>Experience</span><span className="font-semibold text-slate-900">{selectedDoctor.experience} yrs</span></div>
-                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"><span>Consultation fee</span><span className="font-semibold text-slate-900">₹{selectedDoctor.appointmentFee}</span></div>
-                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"><span>Date</span><span className="font-semibold text-slate-900">{date || "—"}</span></div>
-                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"><span>Time</span><span className="font-semibold text-slate-900">{time || "—"}</span></div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Experience</span>
+                  <span className="font-semibold text-slate-900">
+                    {selectedDoctor.experience} yrs
+                  </span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Consultation fee</span>
+                  <span className="font-semibold text-slate-900">
+                    ₹{selectedDoctor.appointmentFee}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Date</span>
+                  <span className="font-semibold text-slate-900">
+                    {date || "—"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Time</span>
+                  <span className="font-semibold text-slate-900">
+                    {time || "—"}
+                  </span>
+                </div>
               </div>
 
               <button

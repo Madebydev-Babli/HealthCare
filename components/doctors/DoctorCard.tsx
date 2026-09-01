@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Briefcase, Star, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Props {
   doctor: any;
@@ -9,6 +10,12 @@ interface Props {
 }
 
 export default function DoctorCard({ doctor, onView }: Props) {
+  const router = useRouter();
+
+  const handleBookNow = () => {
+    router.push(`/book-appointment?doctorId=${doctor._id}`);
+  };
+
   return (
     <div className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
       {/* Image */}
@@ -67,12 +74,15 @@ export default function DoctorCard({ doctor, onView }: Props) {
         <div className="mt-6 flex gap-3">
           <button
             onClick={() => onView(doctor)}
-            className="flex-1 rounded-xl border border-slate-200 py-3 font-medium transition hover:bg-slate-50"
+            className="flex-1 rounded-xl border border-slate-200 py-3 font-medium text-slate-900 transition hover:bg-slate-50"
           >
             View Details
           </button>
 
-          <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-cyan-500 py-3 font-medium text-white transition hover:bg-cyan-600">
+          <button
+            onClick={handleBookNow}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-cyan-500 py-3 font-medium text-white transition hover:bg-cyan-600"
+          >
             Book Now
             <ArrowRight size={16} />
           </button>

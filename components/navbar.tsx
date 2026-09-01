@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 
 import { clinicName, navLinks } from "@/lib/site-data";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -65,8 +64,6 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <ThemeToggle />
-
           <Link
             href="/book-appointment"
             className="hidden items-center rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-cyan-600 md:flex"
@@ -92,7 +89,9 @@ export function Navbar() {
 
                   <div className="hidden text-left lg:block">
                     <p className="text-sm font-semibold">{session.user.name}</p>
-                    <p className="text-xs capitalize text-slate-400">{session.user.role}</p>
+                    <p className="text-xs capitalize text-slate-400">
+                      {session.user.role}
+                    </p>
                   </div>
 
                   <ChevronDown size={16} />
@@ -101,19 +100,32 @@ export function Navbar() {
                 {open && (
                   <div className="absolute right-0 mt-3 w-64 overflow-hidden rounded-3xl border border-white/10 bg-slate-900/95 p-2 shadow-2xl backdrop-blur-xl">
                     <div className="border-b border-white/10 px-4 py-3">
-                      <p className="font-semibold text-white">{session.user.name}</p>
-                      <p className="text-xs capitalize text-slate-400">{session.user.role}</p>
+                      <p className="font-semibold text-white">
+                        {session.user.name}
+                      </p>
+                      <p className="text-xs capitalize text-slate-400">
+                        {session.user.role}
+                      </p>
                     </div>
 
-                    <Link href={dashboardHref} className="mt-2 flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white">
+                    <Link
+                      href={dashboardHref}
+                      className="mt-2 flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                    >
                       <LayoutDashboard size={18} /> Dashboard
                     </Link>
 
-                    <Link href="/dashboard/patient/profile" className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white">
+                    <Link
+                      href="/dashboard/patient/profile"
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                    >
                       <User size={18} /> Profile
                     </Link>
 
-                    <Link href="/appointments" className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white">
+                    <Link
+                      href="/appointments"
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                    >
                       <Bell size={18} /> My Appointments
                     </Link>
 
@@ -131,8 +143,18 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/auth/login" className="hidden rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 font-medium text-white backdrop-blur-md transition hover:bg-white/10 sm:inline-flex">Login</Link>
-              <Link href="/auth/signup" className="hidden rounded-xl bg-cyan-500 px-5 py-2.5 font-medium text-white transition hover:bg-cyan-600 sm:inline-flex">Sign Up</Link>
+              <Link
+                href="/auth/login"
+                className="hidden rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 font-medium text-white backdrop-blur-md transition hover:bg-white/10 sm:inline-flex"
+              >
+                Login
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="hidden rounded-xl bg-cyan-500 px-5 py-2.5 font-medium text-white transition hover:bg-cyan-600 sm:inline-flex"
+              >
+                Sign Up
+              </Link>
             </>
           )}
 
@@ -161,10 +183,74 @@ export function Navbar() {
               </Link>
             ))}
 
-            {!session && (
+            {session ? (
+              <>
+                <div className="my-3 border-t border-white/10" />
+
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-200 hover:bg-white/5"
+                >
+                  <LayoutDashboard size={16} /> Dashboard
+                </Link>
+
+                <Link
+                  href="/appointments"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-200 hover:bg-white/5"
+                >
+                  <Bell size={16} /> My Appointments
+                </Link>
+
+                {session.user.role !== "doctor" && (
+                  <Link
+                    href="/dashboard/patient/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-200 hover:bg-white/5"
+                  >
+                    <User size={16} /> Profile
+                  </Link>
+                )}
+
+                {session.user.role === "doctor" && (
+                  <Link
+                    href="/dashboard/doctor/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-200 hover:bg-white/5"
+                  >
+                    <User size={16} /> Profile
+                  </Link>
+                )}
+
+                <div className="my-2 border-t border-white/10" />
+
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    signOut({ callbackUrl: "/auth/login" });
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10"
+                >
+                  <LogOut size={16} /> Logout
+                </button>
+              </>
+            ) : (
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)} className="rounded-xl border border-white/10 px-4 py-3 text-center text-sm font-medium text-white">Login</Link>
-                <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)} className="rounded-xl bg-cyan-500 px-4 py-3 text-center text-sm font-medium text-white">Sign Up</Link>
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-xl border border-white/10 px-4 py-3 text-center text-sm font-medium text-white"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-xl bg-cyan-500 px-4 py-3 text-center text-sm font-medium text-white"
+                >
+                  Sign Up
+                </Link>
               </div>
             )}
           </div>

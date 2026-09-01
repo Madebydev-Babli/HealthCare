@@ -5,7 +5,7 @@ import Hero from "./hero-section";
 
 export default function HomePage() {
   return (
-    <div className="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="bg-white text-slate-900">
       <main>
         <Hero />
         <About />
@@ -15,3 +15,4 @@ export default function HomePage() {
     </div>
   );
 }
+
