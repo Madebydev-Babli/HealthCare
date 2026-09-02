@@ -12,7 +12,14 @@ import {
 
 import { StatusBadge } from "@/components/ui/StatusBadge";
 
-const tabs = ["all", "upcoming", "pending", "completed", "cancelled"] as const;
+const tabs = [
+  "all",
+  "upcoming",
+  "pending",
+  "rejected",
+  "completed",
+  "cancelled",
+] as const;
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<any[] | null>(null);
@@ -20,6 +27,47 @@ export default function AppointmentsPage() {
   const [unauth, setUnauth] = useState(false);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("all");
   const [search, setSearch] = useState("");
+
+  const cancelAppointment = async (appointmentId: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this appointment?",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/appointments/${appointmentId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "cancelled" }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Unable to cancel appointment");
+      }
+
+      setAppointments((prev) =>
+        (prev || []).map((appointment) =>
+          appointment._id === appointmentId
+            ? { ...appointment, status: "cancelled" }
+            : appointment,
+        ),
+      );
+
+      const toast = (await import("@/hooks/useToast")).useToast;
+      toast().success("Appointment cancelled successfully.");
+    } catch (error) {
+      console.error(error);
+      const toast = (await import("@/hooks/useToast")).useToast;
+      toast().error(
+        error instanceof Error ? error.message : "Unable to cancel appointment",
+      );
+    }
+  };
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -88,6 +136,8 @@ export default function AppointmentsPage() {
 
       if (activeTab === "upcoming") return matchesSearch && isUpcoming;
       if (activeTab === "pending") return matchesSearch && status === "pending";
+      if (activeTab === "rejected")
+        return matchesSearch && status === "rejected";
       if (activeTab === "completed")
         return matchesSearch && status === "completed";
       if (activeTab === "cancelled")
@@ -234,6 +284,18 @@ export default function AppointmentsPage() {
                     </div>
 
                     <StatusBadge status={appointment.status || "pending"} />
+
+                    {["pending", "approved"].includes(
+                      (appointment.status || "pending").toLowerCase(),
+                    ) && (
+                      <button
+                        type="button"
+                        onClick={() => cancelAppointment(appointment._id)}
+                        className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+                      >
+                        Cancel Appointment
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

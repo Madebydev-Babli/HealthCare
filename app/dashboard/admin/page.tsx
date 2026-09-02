@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AdminSidebar from "@/components/dashboard/AdminSidebar";
 
 type Stats = {
   doctors: number;
@@ -41,143 +40,133 @@ export default function AdminHomePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        Loading...
+        <div className="text-sm font-medium text-slate-500">
+          Loading dashboard...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb]">
-      <div className="flex">
-        {/* Sidebar */}
-        <AdminSidebar />
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <div>
+          <h1 className="text-4xl font-bold text-slate-900">Admin Dashboard</h1>
 
-        {/* Main */}
-        <div className="flex-1 p-8">
-          {/* Header */}
-          <div className="flex items-center justify-between">
+          <p className="mt-2 text-slate-600">Welcome back, Admin 👋</p>
+        </div>
+
+        <div className="rounded-2xl bg-white px-6 py-4 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-600">Total Platform Users</p>
+
+          <h2 className="mt-2 text-3xl font-bold text-cyan-600">
+            {stats.doctors + stats.patients}
+          </h2>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Doctors */}
+        <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200">
+          <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-800">
-                Admin Dashboard
-              </h1>
-
-              <p className="mt-2 text-gray-500">Welcome back, Admin 👋</p>
-            </div>
-
-            <div className="rounded-2xl bg-white px-6 py-4 shadow-md">
-              <p className="text-sm text-gray-500">Total Platform Users</p>
-
-              <h2 className="text-3xl font-bold text-blue-600">
-                {stats.doctors + stats.patients}
-              </h2>
-            </div>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {/* Doctors */}
-            <div className="rounded-3xl bg-white p-6 shadow-md">
-              <div className="flex items-center justify-between">
-                <p className="text-gray-500">Doctors</p>
-
-                <div className="rounded-full bg-blue-100 p-3">👨‍⚕️</div>
-              </div>
-
-              <h2 className="mt-6 text-5xl font-bold text-blue-600">
+              <p className="text-sm font-medium text-slate-600">Doctors</p>
+              <h3 className="mt-4 text-4xl font-bold text-cyan-600">
                 {stats.doctors}
-              </h2>
-
-              <p className="mt-2 text-sm text-gray-400">Registered Doctors</p>
+              </h3>
+              <p className="mt-2 text-sm text-slate-500">Registered Doctors</p>
             </div>
+            <div className="rounded-lg bg-cyan-100 p-3 text-cyan-600">👨‍⚕️</div>
+          </div>
+        </div>
 
-            {/* Patients */}
-            <div className="rounded-3xl bg-white p-6 shadow-md">
-              <div className="flex items-center justify-between">
-                <p className="text-gray-500">Patients</p>
-
-                <div className="rounded-full bg-green-100 p-3">🧑‍🤝‍🧑</div>
-              </div>
-
-              <h2 className="mt-6 text-5xl font-bold text-green-600">
+        {/* Patients */}
+        <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600">Patients</p>
+              <h3 className="mt-4 text-4xl font-bold text-cyan-600">
                 {stats.patients}
-              </h2>
-
-              <p className="mt-2 text-sm text-gray-400">Registered Patients</p>
+              </h3>
+              <p className="mt-2 text-sm text-slate-500">Registered Patients</p>
             </div>
+            <div className="rounded-lg bg-cyan-100 p-3">🧑‍🤝‍🧑</div>
+          </div>
+        </div>
 
-            {/* Appointments */}
-            <div className="rounded-3xl bg-white p-6 shadow-md">
-              <div className="flex items-center justify-between">
-                <p className="text-gray-500">Appointments</p>
-
-                <div className="rounded-full bg-purple-100 p-3">📅</div>
-              </div>
-
-              <h2 className="mt-6 text-5xl font-bold text-purple-600">
+        {/* Appointments */}
+        <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600">Appointments</p>
+              <h3 className="mt-4 text-4xl font-bold text-cyan-600">
                 {stats.appointments}
-              </h2>
-
-              <p className="mt-2 text-sm text-gray-400">Total Bookings</p>
+              </h3>
+              <p className="mt-2 text-sm text-slate-500">Total Bookings</p>
             </div>
+            <div className="rounded-lg bg-cyan-100 p-3">📅</div>
+          </div>
+        </div>
 
-            {/* Pending */}
-            <div className="rounded-3xl bg-white p-6 shadow-md">
-              <div className="flex items-center justify-between">
-                <p className="text-gray-500">Pending Doctors</p>
-
-                <div className="rounded-full bg-yellow-100 p-3">⏳</div>
-              </div>
-
-              <h2 className="mt-6 text-5xl font-bold text-yellow-500">
+        {/* Pending */}
+        <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600">
+                Pending Doctors
+              </p>
+              <h3 className="mt-4 text-4xl font-bold text-cyan-600">
                 {stats.pendingDoctors}
-              </h2>
-
-              <p className="mt-2 text-sm text-gray-400">Awaiting Approval</p>
+              </h3>
+              <p className="mt-2 text-sm text-slate-500">Awaiting Approval</p>
             </div>
+            <div className="rounded-lg bg-cyan-100 p-3">⏳</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Overview */}
+      <div className="rounded-2xl bg-white p-8 shadow-sm border border-slate-200">
+        <h2 className="text-2xl font-bold text-slate-900">Platform Overview</h2>
+
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
+          <div className="rounded-xl bg-cyan-50 p-5 border border-cyan-100">
+            <p className="text-sm font-medium text-slate-600">Approval Rate</p>
+
+            <h3 className="mt-3 text-3xl font-bold text-cyan-700">
+              {stats.doctors > 0
+                ? Math.round(
+                    ((stats.doctors - stats.pendingDoctors) / stats.doctors) *
+                      100,
+                  )
+                : 0}
+              %
+            </h3>
           </div>
 
-          {/* Recent Activity */}
-          <div className="mt-10 rounded-3xl bg-white p-8 shadow-md">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Platform Overview
-            </h2>
+          <div className="rounded-xl bg-cyan-50 p-5 border border-cyan-100">
+            <p className="text-sm font-medium text-slate-600">
+              Active Patients
+            </p>
 
-            <div className="mt-6 grid gap-5 md:grid-cols-3">
-              <div className="rounded-2xl bg-blue-50 p-5">
-                <p className="text-sm text-gray-500">Approval Rate</p>
+            <h3 className="mt-3 text-3xl font-bold text-cyan-700">
+              {stats.patients}
+            </h3>
+          </div>
 
-                <h3 className="mt-2 text-3xl font-bold text-blue-700">
-                  {stats.doctors > 0
-                    ? Math.round(
-                        ((stats.doctors - stats.pendingDoctors) /
-                          stats.doctors) *
-                          100,
-                      )
-                    : 0}
-                  %
-                </h3>
-              </div>
+          <div className="rounded-xl bg-cyan-50 p-5 border border-cyan-100">
+            <p className="text-sm font-medium text-slate-600">
+              Total Appointments
+            </p>
 
-              <div className="rounded-2xl bg-green-50 p-5">
-                <p className="text-sm text-gray-500">Active Patients</p>
-
-                <h3 className="mt-2 text-3xl font-bold text-green-700">
-                  {stats.patients}
-                </h3>
-              </div>
-
-              <div className="rounded-2xl bg-purple-50 p-5">
-                <p className="text-sm text-gray-500">Daily Appointments</p>
-
-                <h3 className="mt-2 text-3xl font-bold text-purple-700">
-                  {stats.appointments}
-                </h3>
-              </div>
-            </div>
+            <h3 className="mt-3 text-3xl font-bold text-cyan-700">
+              {stats.appointments}
+            </h3>
           </div>
         </div>
       </div>
     </div>
   );
 }
-

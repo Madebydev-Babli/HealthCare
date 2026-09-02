@@ -18,32 +18,39 @@ export default function AdminPatientsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] p-8">
-      <h1 className="text-4xl font-bold text-gray-800">Patients</h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold text-slate-900">Patients</h1>
 
-      <p className="mt-2 text-gray-500">All registered patients</p>
+        <p className="mt-2 text-slate-600">All registered patients</p>
+      </div>
 
-      <div className="mt-10 overflow-hidden rounded-3xl bg-white shadow-md">
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200">
         <table className="w-full">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-cyan-600 text-white">
             <tr>
-              <th className="p-5 text-left">Patient</th>
+              <th className="p-5 text-left font-semibold">Patient</th>
 
-              <th className="p-5 text-left">Email</th>
+              <th className="p-5 text-left font-semibold">Email</th>
 
-              <th className="p-5 text-left">Role</th>
+              <th className="p-5 text-left font-semibold">Role</th>
             </tr>
           </thead>
 
           <tbody>
             {patients.map((patient: any) => (
-              <tr key={patient._id} className="border-b hover:bg-gray-50">
-                <td className="p-5 font-semibold">{patient.name}</td>
+              <tr
+                key={patient._id}
+                className="border-b border-slate-200 hover:bg-slate-50 transition"
+              >
+                <td className="p-5 font-semibold text-slate-900">
+                  {patient.name}
+                </td>
 
-                <td className="p-5">{patient.email}</td>
+                <td className="p-5 text-slate-600">{patient.email}</td>
 
                 <td className="p-5">
-                  <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700">
+                  <span className="rounded-full bg-cyan-100 px-3 py-1 text-sm font-medium text-cyan-700">
                     Patient
                   </span>
                 </td>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Calendar,
@@ -11,6 +12,7 @@ import {
   User,
   LogOut,
   Stethoscope,
+  Home,
 } from "lucide-react";
 
 const links = [
@@ -40,7 +42,7 @@ const links = [
     icon: Clock3,
   },
   {
-    href: "/dashboard/doctor/profile/create",
+    href: "/dashboard/doctor/profile",
     label: "Profile",
     icon: User,
   },
@@ -50,7 +52,7 @@ export default function DoctorSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white lg:flex">
+    <aside className="hidden w-72 shrink-0 flex-col border-r border-slate-200 bg-white lg:sticky lg:top-0 lg:flex lg:h-screen">
       <div className="border-b p-6">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-cyan-500 p-3 text-white">
@@ -87,9 +89,21 @@ export default function DoctorSidebar() {
         </nav>
       </div>
 
-      <div className="border-t p-4">
-        <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-red-500 hover:bg-red-50">
-          <LogOut size={20} />
+      <div className="border-t border-slate-200 p-4 space-y-2">
+        <Link
+          href="/"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+        >
+          <Home size={18} />
+          Back to Home
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/auth/login" })}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+        >
+          <LogOut size={18} />
           Logout
         </button>
       </div>

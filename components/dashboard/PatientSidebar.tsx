@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
-  CalendarDays,
   LayoutDashboard,
+  Home,
   LogOut,
   Stethoscope,
+  CalendarDays,
   UserRound,
 } from "lucide-react";
 
@@ -22,7 +23,7 @@ export default function PatientSidebar() {
     },
     {
       href: "/appointments",
-      label: "Appointments",
+      label: "My Appointments",
       icon: CalendarDays,
     },
     {
@@ -38,7 +39,7 @@ export default function PatientSidebar() {
   ];
 
   return (
-    <aside className="hidden w-72 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
+    <aside className="hidden w-72 shrink-0 flex-col border-r border-slate-200 bg-white lg:sticky lg:top-0 lg:flex lg:h-screen">
       <div className="border-b border-slate-200 p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500 text-white shadow-lg shadow-cyan-500/20">
@@ -47,7 +48,7 @@ export default function PatientSidebar() {
 
           <div>
             <p className="text-lg font-bold text-slate-900">Healthcare</p>
-            <p className="text-sm text-slate-500">Smart Care</p>
+            <p className="text-sm text-slate-500">Patient Portal</p>
           </div>
         </div>
       </div>
@@ -73,7 +74,15 @@ export default function PatientSidebar() {
         })}
       </nav>
 
-      <div className="border-t border-slate-200 p-4">
+      <div className="border-t border-slate-200 p-4 space-y-2">
+        <Link
+          href="/"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+        >
+          <Home size={18} />
+          Back to Home
+        </Link>
+
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/auth/login" })}

@@ -56,7 +56,6 @@ export async function POST(req: Request) {
 
     const patient = await Patient.create({
       userId: session.user.id,
-
       name: body.name,
       email: body.email,
       phone: body.phone,
@@ -66,12 +65,67 @@ export async function POST(req: Request) {
       address: body.address,
     });
 
-    return NextResponse.json(patient);
+    return NextResponse.json(
+      {
+        message: "Profile created successfully",
+        patient,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.log(error);
 
     return NextResponse.json(
       { message: "Failed to create profile" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    await connectDB();
+
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+
+    const patient = await Patient.findOneAndUpdate(
+      { userId: session.user.id },
+      {
+        $set: {
+          name: body.name,
+          email: body.email,
+          phone: body.phone,
+          gender: body.gender,
+          dateOfBirth: body.dateOfBirth,
+          bloodGroup: body.bloodGroup,
+          address: body.address,
+        },
+      },
+      { new: true, runValidators: true },
+    );
+
+    if (!patient) {
+      return NextResponse.json(
+        { message: "Profile not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      message: "Profile updated successfully",
+      patient,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return NextResponse.json(
+      { message: "Failed to update profile" },
       { status: 500 },
     );
   }

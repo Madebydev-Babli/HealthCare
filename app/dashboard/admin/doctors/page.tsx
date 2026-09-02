@@ -58,30 +58,31 @@ export default function AdminDoctorsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] p-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-4xl font-bold text-gray-800">
+          <h1 className="text-4xl font-bold text-slate-900">
             Doctors Management
           </h1>
 
-          <p className="mt-2 text-gray-500">Manage all registered doctors</p>
+          <p className="mt-2 text-slate-600">Manage all registered doctors</p>
         </div>
 
-        <div className="rounded-2xl bg-blue-600 px-6 py-3 text-white">
+        <div className="rounded-2xl bg-cyan-600 px-6 py-3 text-white font-medium shadow-sm">
           Total Doctors: {doctors.length}
         </div>
       </div>
 
       {/* Cards */}
-      <div className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-7 md:grid-cols-1 lg:grid-cols-2">
         {doctors.map((doctor) => (
           <div
             key={doctor._id}
-            className="overflow-hidden rounded-3xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+            className="overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200 transition hover:-translate-y-1 hover:shadow-md"
           >
             {/* Top */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
+            <div className="bg-linear-to-r from-cyan-500 to-cyan-600 p-6">
               <div className="flex items-center gap-4">
                 <img
                   src={doctor.image || "https://via.placeholder.com/100"}
@@ -94,7 +95,7 @@ export default function AdminDoctorsPage() {
                     Dr. {doctor.name}
                   </h2>
 
-                  <p className="text-blue-100">{doctor.specialization}</p>
+                  <p className="text-cyan-100">{doctor.specialization}</p>
                 </div>
               </div>
             </div>
@@ -103,34 +104,36 @@ export default function AdminDoctorsPage() {
             <div className="p-6">
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Experience</span>
-                  <span className="font-semibold">
+                  <span className="text-slate-600">Experience</span>
+                  <span className="font-semibold text-slate-900">
                     {doctor.experience} Years
                   </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Degree</span>
-                  <span className="font-semibold">{doctor.degree}</span>
+                  <span className="text-slate-600">Degree</span>
+                  <span className="font-semibold text-slate-900">
+                    {doctor.degree}
+                  </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Fee</span>
-                  <span className="font-semibold">
+                  <span className="text-slate-600">Fee</span>
+                  <span className="font-semibold text-slate-900">
                     ₹{doctor.consultationFee}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Status</span>
+                  <span className="text-slate-600">Status</span>
 
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-bold ${
                       doctor.status === "approved"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-emerald-100 text-emerald-700"
                         : doctor.status === "rejected"
                           ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
+                          : "bg-amber-100 text-amber-700"
                     }`}
                   >
                     {doctor.status}
@@ -139,19 +142,19 @@ export default function AdminDoctorsPage() {
               </div>
 
               {/* Bio */}
-              <div className="mt-5 rounded-2xl bg-gray-50 p-4">
-                <h3 className="mb-2 text-sm font-semibold text-gray-700">
+              <div className="mt-5 rounded-lg bg-slate-50 p-4 border border-slate-200">
+                <h3 className="mb-2 text-sm font-semibold text-slate-900">
                   Doctor Bio
                 </h3>
 
-                <p className="line-clamp-3 text-sm leading-relaxed text-gray-600">
+                <p className="line-clamp-3 text-sm leading-relaxed text-slate-600">
                   {doctor.bio || "No bio available"}
                 </p>
 
                 {doctor.bio && doctor.bio.length > 120 && (
                   <button
                     onClick={() => setSelectedDoctor(doctor)}
-                    className="mt-3 text-sm font-medium text-blue-600 hover:text-blue-700"
+                    className="mt-3 text-sm font-medium text-cyan-600 hover:text-cyan-700"
                   >
                     Read Full Bio →
                   </button>
@@ -159,38 +162,68 @@ export default function AdminDoctorsPage() {
               </div>
 
               {/* Actions */}
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => updateStatus(doctor._id, "approved")}
-                  className="rounded-xl bg-green-600 py-3 text-white hover:bg-green-700"
-                >
-                  Approve
-                </button>
+              {doctor.status === "pending" ? (
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => updateStatus(doctor._id, "approved")}
+                    className="rounded-lg bg-emerald-600 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition"
+                  >
+                    Approve
+                  </button>
 
-                <button
-                  onClick={() => updateStatus(doctor._id, "rejected")}
-                  className="rounded-xl bg-yellow-500 py-3 text-white hover:bg-yellow-600"
-                >
-                  Reject
-                </button>
-              </div>
+                  <button
+                    onClick={() => updateStatus(doctor._id, "rejected")}
+                    className="rounded-lg bg-amber-600 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
+                  >
+                    Reject
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-6 rounded-lg bg-slate-50 px-3 py-2 text-center text-sm font-medium text-slate-600 border border-slate-200">
+                  {doctor.status === "approved"
+                    ? "Approved"
+                    : doctor.status === "rejected"
+                      ? "Rejected"
+                      : doctor.status}
+                </div>
+              )}
 
               <button
-                onClick={() => deleteDoctor(doctor._id)}
-                className="mt-3 w-full rounded-xl bg-red-600 py-3 text-white hover:bg-red-700"
+                type="button"
+                onClick={() => {
+                  const confirmed = window.confirm(
+                    `Delete doctor ${doctor.name}? This action cannot be undone.`,
+                  );
+                  if (confirmed) deleteDoctor(doctor._id);
+                }}
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+                title="Delete doctor"
+                aria-label="Delete doctor"
               >
-                Delete Doctor
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="h-4 w-4"
+                >
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4h8v2" />
+                  <path d="M19 6l-1 14H6L5 6" />
+                  <path d="M10 11v6M14 11v6" />
+                </svg>
+                Delete
               </button>
             </div>
           </div>
         ))}
       </div>
       {selectedDoctor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-8 shadow-xl border border-slate-200">
             <button
               onClick={() => setSelectedDoctor(null)}
-              className="absolute right-5 top-5 text-2xl text-gray-500 hover:text-black"
+              className="absolute right-5 top-5 text-2xl text-slate-400 hover:text-slate-600 transition"
             >
               ×
             </button>
@@ -199,52 +232,56 @@ export default function AdminDoctorsPage() {
               <img
                 src={selectedDoctor.image || "https://via.placeholder.com/100"}
                 alt={selectedDoctor.name}
-                className="h-24 w-24 rounded-full border object-cover"
+                className="h-24 w-24 rounded-full border-4 border-cyan-100 object-cover"
               />
 
               <div>
-                <h2 className="text-3xl font-bold text-gray-800">
+                <h2 className="text-3xl font-bold text-slate-900">
                   Dr. {selectedDoctor.name}
                 </h2>
 
-                <p className="text-gray-500">{selectedDoctor.specialization}</p>
+                <p className="text-slate-600">
+                  {selectedDoctor.specialization}
+                </p>
               </div>
             </div>
 
-            <div className="grid gap-3 rounded-2xl bg-gray-50 p-5 text-sm">
+            <div className="grid gap-3 rounded-lg bg-slate-50 p-5 text-sm border border-slate-200">
               <div className="flex justify-between">
-                <span>Experience</span>
-                <span className="font-semibold">
+                <span className="text-slate-600">Experience</span>
+                <span className="font-semibold text-slate-900">
                   {selectedDoctor.experience} Years
                 </span>
               </div>
 
               <div className="flex justify-between">
-                <span>Degree</span>
-                <span className="font-semibold">{selectedDoctor.degree}</span>
+                <span className="text-slate-600">Degree</span>
+                <span className="font-semibold text-slate-900">
+                  {selectedDoctor.degree}
+                </span>
               </div>
 
               <div className="flex justify-between">
-                <span>Consultation Fee</span>
-                <span className="font-semibold">
+                <span className="text-slate-600">Consultation Fee</span>
+                <span className="font-semibold text-slate-900">
                   ₹{selectedDoctor.consultationFee}
                 </span>
               </div>
             </div>
 
-            <div className="mt-6 rounded-2xl border p-5">
-              <h3 className="mb-3 text-lg font-semibold">
+            <div className="mt-6 rounded-lg border border-slate-200 p-5">
+              <h3 className="mb-3 text-lg font-semibold text-slate-900">
                 Professional Biography
               </h3>
 
-              <p className="whitespace-pre-line leading-8 text-gray-700">
+              <p className="whitespace-pre-line leading-8 text-slate-700">
                 {selectedDoctor.bio}
               </p>
             </div>
 
             <button
               onClick={() => setSelectedDoctor(null)}
-              className="mt-6 w-full rounded-xl bg-blue-600 py-3 text-white transition hover:bg-blue-700"
+              className="mt-6 w-full rounded-lg bg-cyan-600 py-3 text-white font-medium transition hover:bg-cyan-700"
             >
               Close
             </button>
