@@ -151,11 +151,22 @@ async function saveProfile(req: Request, method: "POST" | "PUT") {
     );
 
   const update = { ...parsed.data, profileCompleted: true };
-  const updated = await Doctor.findOneAndUpdate(
-    { userId: session.user.id },
-    { $set: update },
-    { new: true, runValidators: true },
-  );
+  let updated;
+  try {
+    updated = await Doctor.findOneAndUpdate(
+      { userId: session.user.id },
+      { $set: update },
+      { new: true, runValidators: true },
+    );
+  } catch (error: unknown) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === 11000) {
+      return NextResponse.json(
+        { success: false, message: "That medical license number is already registered. Please check it and try again." },
+        { status: 409 },
+      );
+    }
+    throw error;
+  }
   return NextResponse.json(
     {
       success: true,

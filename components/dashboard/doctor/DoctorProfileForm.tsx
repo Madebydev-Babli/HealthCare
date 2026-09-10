@@ -1,693 +1,80 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, Check, Loader2, Plus, Trash2, Upload } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Camera, Check, ChevronDown, Loader2, MapPin, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-const days = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-] as const;
-const dayLabels: Record<(typeof days)[number], string> = {
-  monday: "Monday",
-  tuesday: "Tuesday",
-  wednesday: "Wednesday",
-  thursday: "Thursday",
-  friday: "Friday",
-  saturday: "Saturday",
-  sunday: "Sunday",
-};
+import { useToast } from "@/hooks/useToast";
 
-const availabilityDay = z
-  .object({
-    available: z.boolean(),
-    start: z.string(),
-    end: z.string(),
-  })
-  .superRefine((value, ctx) => {
-    if (value.available && !value.start)
-      ctx.addIssue({
-        code: "custom",
-        path: ["start"],
-        message: "Start time is required",
-      });
-    if (value.available && !value.end)
-      ctx.addIssue({
-        code: "custom",
-        path: ["end"],
-        message: "End time is required",
-      });
-    if (value.available && value.start && value.end && value.start >= value.end)
-      ctx.addIssue({
-        code: "custom",
-        path: ["end"],
-        message: "End time must be after start time",
-      });
-  });
+const ClinicLocationPicker = dynamic(() => import("./ClinicLocationPicker"), { ssr: false });
 
-const profileSchema = z
-  .object({
-    name: z.string().trim().min(1, "Name is required"),
-    image: z.string().url("Upload a valid profile image").or(z.literal("")),
-    gender: z.enum(["Male", "Female", "Other"]),
-    dob: z.string().min(1, "Date of birth is required"),
-    phone: z
-      .string()
-      .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian phone number"),
-    specialization: z.string().trim().min(1, "Specialization is required"),
-    degree: z.string().trim().min(1, "Degree is required"),
-    experience: z.coerce.number().min(0, "Experience cannot be negative"),
-    licenseNumber: z.string().trim().min(1, "License number is required"),
-    languages: z
-      .array(z.string().trim().min(1))
-      .min(1, "Add at least one language"),
-    consultationFee: z.coerce.number().min(0, "Fee cannot be negative"),
-    consultationMode: z.enum(["Clinic", "Online", "Both"]),
-    bio: z.string().trim().min(1, "Bio is required"),
-    clinic: z.object({
-      name: z.string(),
-      images: z.array(z.string().url()),
-      address: z.string(),
-      city: z.string(),
-      state: z.string(),
-      pincode: z.string(),
-      landmark: z.string(),
-      phone: z.string(),
-      mapLink: z.string().url("Enter a valid map link").or(z.literal("")),
-      coordinates: z.object({
-        latitude: z.coerce.number(),
-        longitude: z.coerce.number(),
-      }),
-    }),
-    availability: z.object(
-      Object.fromEntries(days.map((day) => [day, availabilityDay])) as Record<
-        (typeof days)[number],
-        typeof availabilityDay
-      >,
-    ),
-  })
-  .superRefine((value, ctx) => {
-    if (value.consultationMode !== "Online") {
-      for (const [field, label] of [
-        ["name", "Clinic name"],
-        ["address", "Address"],
-        ["city", "City"],
-        ["state", "State"],
-        ["pincode", "Pincode"],
-        ["phone", "Clinic phone"],
-      ] as const) {
-        if (!value.clinic[field].trim())
-          ctx.addIssue({
-            code: "custom",
-            path: ["clinic", field],
-            message: `${label} is required`,
-          });
-      }
+const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+const dayLabels: Record<(typeof days)[number], string> = { monday: "Monday", tuesday: "Tuesday", wednesday: "Wednesday", thursday: "Thursday", friday: "Friday", saturday: "Saturday", sunday: "Sunday" };
+const specializations = ["General Physician", "Internal Medicine", "Cardiologist", "Dermatologist", "Pediatrician", "Gynecologist", "Obstetrician", "Orthopedic", "Neurologist", "Psychiatrist", "Psychologist", "Dentist", "ENT Specialist", "Ophthalmologist", "Urologist", "Gastroenterologist", "Pulmonologist", "Endocrinologist", "Oncologist", "Nephrologist", "General Surgeon", "Plastic Surgeon", "Radiologist", "Anesthesiologist", "Physiotherapist", "Nutritionist", "Other"];
+const degrees = ["MBBS", "MD", "MS", "DNB", "BDS", "MDS", "BHMS", "BAMS", "BUMS", "BPT", "MPT", "PhD", "Diploma", "Other"];
+const languages = ["English", "Hindi", "Gujarati", "Marathi", "Bengali", "Tamil", "Telugu", "Kannada", "Malayalam", "Punjabi", "Urdu", "Odia", "Assamese", "Other"];
+const indianStates = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Delhi", "Jammu and Kashmir", "Ladakh", "Puducherry"];
+
+const availabilityDay = z.object({ available: z.boolean(), start: z.string(), end: z.string() }).superRefine((value, ctx) => {
+  if (value.available && !value.start) ctx.addIssue({ code: "custom", path: ["start"], message: "Choose a start time." });
+  if (value.available && !value.end) ctx.addIssue({ code: "custom", path: ["end"], message: "Choose an end time." });
+  if (value.available && value.start && value.end && value.start >= value.end) ctx.addIssue({ code: "custom", path: ["end"], message: "End time must be after start time." });
+});
+const profileSchema = z.object({
+  name: z.string().trim().min(1, "Please enter your full name."), image: z.string().url("Upload a valid profile image.").or(z.literal("")), gender: z.enum(["Male", "Female", "Other"]), dob: z.string().min(1, "Please enter your date of birth."), phone: z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian phone number."),
+  specialization: z.string().trim().min(1, "Please select your specialization."), degree: z.string().trim().min(1, "Please select your degree."), experience: z.coerce.number().min(0, "Experience cannot be negative."), licenseNumber: z.string().trim().min(1, "Please enter your medical license number."), languages: z.array(z.string().trim().min(1)).min(1, "Select at least one language."), consultationFee: z.coerce.number().min(0, "Consultation fee cannot be negative."), consultationMode: z.enum(["Clinic", "Online", "Both"]), bio: z.string().trim().min(1, "Please add a professional bio."),
+  clinic: z.object({ name: z.string(), images: z.array(z.string().url()), address: z.string(), city: z.string(), state: z.string(), pincode: z.string(), landmark: z.string(), phone: z.string(), mapLink: z.string().url("Choose a valid clinic location.").or(z.literal("")), coordinates: z.object({ latitude: z.coerce.number(), longitude: z.coerce.number() }) }),
+  availability: z.object(Object.fromEntries(days.map((day) => [day, availabilityDay])) as Record<(typeof days)[number], typeof availabilityDay>),
+}).superRefine((value, ctx) => {
+  if (value.consultationMode !== "Online") {
+    for (const [field, label] of [["name", "clinic name"], ["address", "clinic address"], ["city", "clinic city"], ["state", "clinic state"], ["pincode", "6-digit pincode"], ["phone", "clinic phone"]] as const) {
+      if (!value.clinic[field].trim()) ctx.addIssue({ code: "custom", path: ["clinic", field], message: `Please enter your ${label}.` });
     }
-  });
+    if (!/^\d{6}$/.test(value.clinic.pincode)) ctx.addIssue({ code: "custom", path: ["clinic", "pincode"], message: "Enter a valid 6-digit Indian pincode." });
+    if (!/^[6-9]\d{9}$/.test(value.clinic.phone)) ctx.addIssue({ code: "custom", path: ["clinic", "phone"], message: "Enter a valid 10-digit Indian clinic phone number." });
+    if (!Number.isFinite(value.clinic.coordinates.latitude) || !Number.isFinite(value.clinic.coordinates.longitude) || (value.clinic.coordinates.latitude === 0 && value.clinic.coordinates.longitude === 0)) ctx.addIssue({ code: "custom", path: ["clinic", "coordinates"], message: "Please select your clinic location." });
+  }
+});
 
 type ProfileForm = z.infer<typeof profileSchema>;
 type ProfileFormInput = z.input<typeof profileSchema>;
-type ExistingDoctor = Partial<ProfileForm> & {
-  clinic?: Partial<ProfileForm["clinic"]>;
-  availability?: Partial<ProfileForm["availability"]>;
-  profileCompleted?: boolean;
-  status?: "pending" | "approved" | "rejected";
-};
-
 type Props = { mode: "create" | "edit" };
+type ExistingDoctor = Partial<ProfileForm> & { clinic?: Partial<ProfileForm["clinic"]>; availability?: Partial<ProfileForm["availability"]>; profileCompleted?: boolean; status?: "pending" | "approved" | "rejected" };
+const emptyDay = (available = false) => ({ available, start: available ? "09:00" : "", end: available ? "17:00" : "" });
+const defaults: ProfileForm = { name: "", image: "", gender: "Male", dob: "", phone: "", specialization: "", degree: "", experience: 0, licenseNumber: "", languages: [], consultationFee: 0, consultationMode: "Clinic", bio: "", clinic: { name: "", images: [], address: "", city: "", state: "", pincode: "", landmark: "", phone: "", mapLink: "", coordinates: { latitude: 0, longitude: 0 } }, availability: { monday: emptyDay(true), tuesday: emptyDay(true), wednesday: emptyDay(true), thursday: emptyDay(true), friday: emptyDay(true), saturday: emptyDay(), sunday: emptyDay() } };
+const inputClass = "w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
 
-const emptyDay = (available = false) => ({
-  available,
-  start: available ? "09:00" : "",
-  end: available ? "17:00" : "",
-});
-const defaults: ProfileForm = {
-  name: "",
-  image: "",
-  gender: "Male",
-  dob: "",
-  phone: "",
-  specialization: "",
-  degree: "",
-  experience: 0,
-  licenseNumber: "",
-  languages: [],
-  consultationFee: 0,
-  consultationMode: "Clinic",
-  bio: "",
-  clinic: {
-    name: "",
-    images: [],
-    address: "",
-    city: "",
-    state: "",
-    pincode: "",
-    landmark: "",
-    phone: "",
-    mapLink: "",
-    coordinates: { latitude: 0, longitude: 0 },
-  },
-  availability: {
-    monday: emptyDay(true),
-    tuesday: emptyDay(true),
-    wednesday: emptyDay(true),
-    thursday: emptyDay(true),
-    friday: emptyDay(true),
-    saturday: emptyDay(),
-    sunday: emptyDay(),
-  },
-};
+function FieldError({ message }: { message?: string }) { return message ? <p className="text-xs text-red-600" role="alert">{message}</p> : null; }
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) { return <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7"><h2 className="text-lg font-bold text-slate-950">{title}</h2>{description && <p className="mt-1 text-sm text-slate-500">{description}</p>}<div className="mt-5">{children}</div></section>; }
 
-function FieldError({ message }: { message?: string }) {
-  return message ? <p className="text-xs text-red-600">{message}</p> : null;
+function SearchSelect({ label, value, options, placeholder, onChange, error }: { label: string; value: string; options: string[]; placeholder: string; onChange: (value: string) => void; error?: string }) {
+  const [open, setOpen] = useState(false); const [query, setQuery] = useState(""); const filtered = options.filter((option) => option.toLowerCase().includes(query.toLowerCase()));
+  return <div className="relative space-y-2 text-sm font-medium"><label>{label}</label><button type="button" onClick={() => setOpen(!open)} className={`${inputClass} flex items-center justify-between text-left`} aria-expanded={open}><span className={value ? "text-slate-900" : "text-slate-400"}>{value || placeholder}</span><ChevronDown size={17} /></button>{open && <div className="absolute z-30 mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 shadow-xl"><div className="flex items-center gap-2 border-b border-slate-100 px-2"><Search size={15} className="text-slate-400" /><input autoFocus className="w-full py-2 text-sm outline-none" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${label.toLowerCase()}...`} /></div><div className="max-h-52 overflow-y-auto">{filtered.map((option) => <button type="button" key={option} onClick={() => { onChange(option); setOpen(false); setQuery(""); }} className="block w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-cyan-50">{option}</button>)}{filtered.length === 0 && <p className="px-2 py-3 text-sm text-slate-500">No matches found.</p>}</div></div>}<FieldError message={error} /></div>;
 }
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-      <h2 className="mb-5 text-lg font-bold text-slate-900">{title}</h2>
-      {children}
-    </section>
-  );
-}
-const inputClass =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
 
 export default function DoctorProfileForm({ mode }: Props) {
-  const router = useRouter();
-  const [formMode, setFormMode] = useState(mode);
-  const [initializing, setInitializing] = useState(true);
-  const [message, setMessage] = useState<{
-    type: "error" | "success";
-    text: string;
-  } | null>(null);
-  const [uploading, setUploading] = useState<"image" | "clinic" | null>(null);
-  const {
-    register,
-    setValue,
-    watch,
-    reset,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ProfileFormInput, unknown, ProfileForm>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: defaults,
-  });
-  const image = watch("image");
-  const clinicImages = watch("clinic.images");
-  const consultationMode = watch("consultationMode");
-
-  useEffect(() => {
-    setInitializing(true);
-    fetch("/api/doctor/profile")
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok || !data.doctor)
-          throw new Error(data.message || "Unable to load profile");
-        const doctor: ExistingDoctor = data.doctor;
-        if (doctor.status && doctor.status !== "approved")
-          throw new Error("Your doctor account must be approved first");
-
-        const shouldEdit = mode === "edit" || doctor.profileCompleted === true;
-        setFormMode(shouldEdit ? "edit" : "create");
-        if (shouldEdit) {
-          reset({
-            ...defaults,
-            ...doctor,
-            dob: doctor.dob
-              ? new Date(doctor.dob).toISOString().slice(0, 10)
-              : "",
-            languages: doctor.languages || [],
-            clinic: {
-              ...defaults.clinic,
-              ...doctor.clinic,
-              images: doctor.clinic?.images || [],
-              coordinates: {
-                ...defaults.clinic.coordinates,
-                ...doctor.clinic?.coordinates,
-              },
-            },
-            availability: {
-              ...defaults.availability,
-              ...doctor.availability,
-            },
-          } as ProfileForm);
-        }
-      })
-      .catch((error) =>
-        setMessage({
-          type: "error",
-          text: error instanceof Error ? error.message : "Unable to load profile",
-        }),
-      )
-      .finally(() => setInitializing(false));
-  }, [mode, reset]);
-
-  const upload = async (file: File, kind: "image" | "clinic") => {
-    setUploading(kind);
-    setMessage(null);
-    try {
-      const body = new FormData();
-      body.append("file", file);
-      const response = await fetch("/api/doctor/profile/upload", {
-        method: "POST",
-        body,
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Image upload failed");
-      if (kind === "image")
-        setValue("image", data.url, { shouldValidate: true });
-      else
-        setValue("clinic.images", [...(clinicImages || []), data.url], {
-          shouldValidate: true,
-        });
-    } catch (error) {
-      setMessage({
-        type: "error",
-        text: error instanceof Error ? error.message : "Image upload failed",
-      });
-    } finally {
-      setUploading(null);
-    }
-  };
-
-  const submit = async (values: ProfileForm) => {
-    setMessage(null);
-    const response = await fetch("/api/doctor/profile", {
-      method: mode === "create" ? "POST" : "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      setMessage({
-        type: "error",
-        text: data.message || "Unable to save profile",
-      });
-      return;
-    }
-    setMessage({
-      type: "success",
-      text: data.message || "Profile saved successfully",
-    });
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    router.push("/dashboard/doctor/profile");
-    router.refresh();
-  };
-
-  if (initializing)
-    return (
-      <div className="mx-auto max-w-5xl animate-pulse p-6">
-        <div className="h-8 w-64 rounded bg-slate-200" />
-        <div className="mt-6 h-96 rounded-2xl bg-slate-200" />
-      </div>
-    );
-
-  return (
-    <div className="mx-auto max-w-5xl p-4 sm:p-6">
-      <div className="mb-7">
-        <p className="text-sm font-semibold uppercase tracking-wider text-cyan-700">
-          Doctor profile
-        </p>
-        <h1 className="mt-2 text-3xl font-bold text-slate-950">
-          {formMode === "create" ? "Complete your profile" : "Edit your profile"}
-        </h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Keep your professional details current so patients know how to reach
-          you.
-        </p>
-      </div>
-      <form onSubmit={handleSubmit(submit)} className="space-y-6">
-        <Section title="1. Personal information">
-          <div className="grid gap-5 md:grid-cols-2">
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium">
-                Profile image
-              </label>
-              <div className="flex items-center gap-4">
-                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-cyan-50 text-cyan-700">
-                  {image ? (
-                    <img
-                      src={image}
-                      alt="Profile preview"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Camera />
-                  )}
-                </div>
-                <div>
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-                    {uploading === "image" ? (
-                      <Loader2 className="animate-spin" size={16} />
-                    ) : (
-                      <Upload size={16} />
-                    )}{" "}
-                    Upload image
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
-                      disabled={!!uploading}
-                      onChange={(event) => {
-                        const file = event.target.files?.[0];
-                        if (file) void upload(file, "image");
-                        event.target.value = "";
-                      }}
-                    />
-                  </label>
-                  {image && (
-                    <button
-                      type="button"
-                      className="ml-3 text-sm text-red-600"
-                      onClick={() => setValue("image", "")}
-                    >
-                      Remove
-                    </button>
-                  )}
-                  <p className="mt-2 text-xs text-slate-500">
-                    JPG, PNG or WebP, up to 5 MB
-                  </p>
-                </div>
-              </div>
-              <FieldError message={errors.image?.message} />
-            </div>
-            <label className="space-y-2 text-sm font-medium">
-              Full name
-              <input className={inputClass} {...register("name")} />
-              <FieldError message={errors.name?.message} />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Gender
-              <select className={inputClass} {...register("gender")}>
-                <option>Male</option>
-                <option>Female</option>
-                <option>Other</option>
-              </select>
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Date of birth
-              <input type="date" className={inputClass} {...register("dob")} />
-              <FieldError message={errors.dob?.message} />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Phone number
-              <input
-                className={inputClass}
-                inputMode="numeric"
-                {...register("phone")}
-              />
-              <FieldError message={errors.phone?.message} />
-            </label>
-          </div>
-        </Section>
-        <Section title="2. Professional information">
-          <div className="grid gap-5 md:grid-cols-2">
-            <label className="space-y-2 text-sm font-medium">
-              Specialization
-              <input className={inputClass} {...register("specialization")} />
-              <FieldError message={errors.specialization?.message} />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Degree
-              <input className={inputClass} {...register("degree")} />
-              <FieldError message={errors.degree?.message} />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Years of experience
-              <input
-                type="number"
-                min="0"
-                className={inputClass}
-                {...register("experience")}
-              />
-              <FieldError message={errors.experience?.message} />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Medical license number
-              <input className={inputClass} {...register("licenseNumber")} />
-              <FieldError message={errors.licenseNumber?.message} />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Languages{" "}
-              <span className="font-normal text-slate-500">
-                (comma separated)
-              </span>
-              <input
-                className={inputClass}
-                value={(watch("languages") || []).join(", ")}
-                onChange={(event) =>
-                  setValue(
-                    "languages",
-                    event.target.value
-                      .split(",")
-                      .map((item) => item.trim())
-                      .filter(Boolean),
-                    { shouldValidate: true },
-                  )
-                }
-                placeholder="English, Hindi"
-              />
-              <FieldError message={errors.languages?.message} />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Consultation fee (INR)
-              <input
-                type="number"
-                min="0"
-                className={inputClass}
-                {...register("consultationFee")}
-              />
-              <FieldError message={errors.consultationFee?.message} />
-            </label>
-            <fieldset className="space-y-2 text-sm font-medium md:col-span-2">
-              <legend>Consultation mode</legend>
-              <div className="flex flex-wrap gap-3">
-                {["Clinic", "Online", "Both"].map((option) => (
-                  <label
-                    key={option}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-4 py-2"
-                  >
-                    <input
-                      type="radio"
-                      value={option}
-                      {...register("consultationMode")}
-                    />
-                    {option}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <label className="space-y-2 text-sm font-medium md:col-span-2">
-              Professional bio
-              <textarea rows={5} className={inputClass} {...register("bio")} />
-              <FieldError message={errors.bio?.message} />
-            </label>
-          </div>
-        </Section>
-        <Section title="3. Clinic information">
-          <div className="grid gap-5 md:grid-cols-2">
-            {(
-              [
-                ["name", "Clinic name"],
-                ["address", "Address"],
-                ["city", "City"],
-                ["state", "State"],
-                ["pincode", "Pincode"],
-                ["phone", "Clinic phone"],
-                ["landmark", "Landmark"],
-                ["mapLink", "Google Maps link"],
-              ] as const
-            ).map(([field, label]) => (
-              <label key={field} className="space-y-2 text-sm font-medium">
-                <span>
-                  {label}
-                  {consultationMode === "Online" &&
-                  [
-                    "name",
-                    "address",
-                    "city",
-                    "state",
-                    "pincode",
-                    "phone",
-                  ].includes(field) ? (
-                    <span className="font-normal text-slate-400">
-                      {" "}
-                      (optional)
-                    </span>
-                  ) : null}
-                </span>
-                <input
-                  className={inputClass}
-                  {...register(`clinic.${field}`)}
-                />
-                <FieldError message={errors.clinic?.[field]?.message} />
-              </label>
-            ))}
-            <label className="space-y-2 text-sm font-medium">
-              Latitude
-              <input
-                type="number"
-                step="any"
-                className={inputClass}
-                {...register("clinic.coordinates.latitude")}
-              />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              Longitude
-              <input
-                type="number"
-                step="any"
-                className={inputClass}
-                {...register("clinic.coordinates.longitude")}
-              />
-            </label>
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium">
-                Clinic images
-              </label>
-              <div className="flex flex-wrap gap-3">
-                {(clinicImages || []).map((url, index) => (
-                  <div
-                    key={url}
-                    className="relative h-24 w-24 overflow-hidden rounded-lg"
-                  >
-                    <img
-                      src={url}
-                      alt={`Clinic ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      aria-label="Remove clinic image"
-                      className="absolute right-1 top-1 rounded bg-white p-1 text-red-600"
-                      onClick={() =>
-                        setValue(
-                          "clinic.images",
-                          (clinicImages || []).filter(
-                            (_, imageIndex) => imageIndex !== index,
-                          ),
-                        )
-                      }
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-                <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 text-xs text-slate-500">
-                  {uploading === "clinic" ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    <Plus />
-                  )}{" "}
-                  Add image
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    disabled={!!uploading}
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file) void upload(file, "clinic");
-                      event.target.value = "";
-                    }}
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-        </Section>
-        <Section title="4. Weekly availability">
-          <div className="space-y-3">
-            {days.map((day) => {
-              const available = watch(`availability.${day}.available`);
-              return (
-                <div
-                  key={day}
-                  className="grid items-center gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-[9rem_8rem_1fr_1fr]"
-                >
-                  <span className="font-medium">{dayLabels[day]}</span>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      {...register(`availability.${day}.available`)}
-                    />{" "}
-                    Available
-                  </label>
-                  {available ? (
-                    <>
-                      <label className="text-sm text-slate-600">
-                        Start
-                        <input
-                          type="time"
-                          className={inputClass}
-                          {...register(`availability.${day}.start`)}
-                        />
-                        <FieldError
-                          message={errors.availability?.[day]?.start?.message}
-                        />
-                      </label>
-                      <label className="text-sm text-slate-600">
-                        End
-                        <input
-                          type="time"
-                          className={inputClass}
-                          {...register(`availability.${day}.end`)}
-                        />
-                        <FieldError
-                          message={errors.availability?.[day]?.end?.message}
-                        />
-                      </label>
-                    </>
-                  ) : (
-                    <span className="text-sm text-slate-500">Day off</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-        {message && (
-          <div
-            role="alert"
-            className={`rounded-lg p-3 text-sm ${message.type === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}
-          >
-            {message.text}
-          </div>
-        )}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isSubmitting || !!uploading}
-            className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-6 py-3 font-semibold text-white transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSubmitting ? (
-              <Loader2 className="animate-spin" size={17} />
-            ) : (
-              <Check size={17} />
-            )}
-            {isSubmitting
-              ? "Saving..."
-              : formMode === "create"
-                ? "Create profile"
-                : "Save changes"}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
+  const toast = useToast(); const [formMode, setFormMode] = useState(mode); const [step, setStep] = useState(0); const [initializing, setInitializing] = useState(true); const [message, setMessage] = useState<string | null>(null); const [uploading, setUploading] = useState<"image" | "clinic" | null>(null); const [languageQuery, setLanguageQuery] = useState("");
+  const { register, setValue, watch, reset, trigger, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProfileFormInput, unknown, ProfileForm>({ resolver: zodResolver(profileSchema), defaultValues: defaults });
+  const image = watch("image"); const clinicImages = watch("clinic.images") || []; const consultationMode = watch("consultationMode"); const selectedLanguages = watch("languages") || [];
+  useEffect(() => { fetch("/api/doctor/profile").then(async (response) => { const data = await response.json(); if (!response.ok || !data.doctor) { if (mode === "create" && response.status === 404) return; throw new Error(data.message || "Unable to load profile"); } const doctor: ExistingDoctor = data.doctor; if (doctor.status && doctor.status !== "approved") throw new Error("Your doctor account must be approved first."); const shouldEdit = mode === "edit" || doctor.profileCompleted === true; setFormMode(shouldEdit ? "edit" : "create"); if (shouldEdit) reset({ ...defaults, ...doctor, dob: doctor.dob ? new Date(doctor.dob).toISOString().slice(0, 10) : "", languages: doctor.languages || [], clinic: { ...defaults.clinic, ...doctor.clinic, images: doctor.clinic?.images || [], coordinates: { ...defaults.clinic.coordinates, ...doctor.clinic?.coordinates } }, availability: { ...defaults.availability, ...doctor.availability } } as ProfileForm); }).catch((error) => setMessage(error instanceof Error ? error.message : "Unable to load profile")).finally(() => setInitializing(false)); }, [mode, reset]);
+  const upload = async (file: File, kind: "image" | "clinic") => { setUploading(kind); setMessage(null); try { const body = new FormData(); body.append("file", file); const response = await fetch("/api/doctor/profile/upload", { method: "POST", body }); const data = await response.json(); if (!response.ok) throw new Error(data.message || "Image upload failed"); if (kind === "image") setValue("image", data.url, { shouldValidate: true }); else setValue("clinic.images", [...clinicImages, data.url], { shouldValidate: true }); } catch (error) { setMessage(error instanceof Error ? error.message : "Image upload failed"); } finally { setUploading(null); } };
+  const submit = async (values: ProfileForm) => { setMessage(null); const response = await fetch("/api/doctor/profile", { method: formMode === "create" ? "POST" : "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) }); const data = await response.json(); if (!response.ok) { setMessage(data.message || "Unable to save profile"); return; } toast.success(formMode === "create" ? "Profile created successfully." : "Profile updated successfully."); window.location.assign("/dashboard/doctor/profile"); };
+  const next = async (fields: Parameters<typeof trigger>[0]) => { if (await trigger(fields)) setStep((current) => current + 1); };
+  const coordinates = watch("clinic.coordinates");
+  const locationValue = { latitude: Number(coordinates?.latitude || 0), longitude: Number(coordinates?.longitude || 0), address: watch("clinic.address") || "", city: watch("clinic.city") || "", state: watch("clinic.state") || "", pincode: watch("clinic.pincode") || "", mapLink: watch("clinic.mapLink") || "" };
+  if (initializing) return <div className="mx-auto max-w-5xl animate-pulse p-6"><div className="h-8 w-64 rounded bg-slate-200" /><div className="mt-6 h-96 rounded-2xl bg-slate-200" /></div>;
+  const steps = ["About You", "Professional Details", "Clinic Location", "Availability"];
+  const visibleLanguages = languages.filter((language) => language.toLowerCase().includes(languageQuery.toLowerCase()) && !selectedLanguages.includes(language));
+  return <div className="min-h-full bg-slate-50/70 px-4 py-6 sm:px-6"><div className="mx-auto max-w-5xl"><div className="mb-7"><p className="text-sm font-semibold uppercase tracking-wider text-cyan-700">Doctor profile</p><h1 className="mt-2 text-3xl font-bold text-slate-950">{formMode === "create" ? "Complete your profile" : "Edit your profile"}</h1><p className="mt-2 text-sm text-slate-600">A few details help patients find the right care with confidence.</p></div><nav aria-label="Profile steps" className="mb-6 grid grid-cols-4 gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">{steps.map((label, index) => <div key={label} className={`rounded-xl px-2 py-3 text-center text-[11px] font-semibold sm:text-sm ${index === step ? "bg-cyan-700 text-white" : index < step ? "bg-cyan-50 text-cyan-800" : "text-slate-400"}`}><span className="mr-1">{index < step ? "✓" : index + 1}</span>{label}</div>)}</nav>
+  <form onSubmit={handleSubmit(submit)} className="space-y-6">
+    {step === 0 && <Section title="About You" description="Start with the details patients will see first."><div className="grid gap-5 md:grid-cols-2"><div className="md:col-span-2"><label className="mb-2 block text-sm font-medium">Profile photo</label><div className="flex items-center gap-4"><div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-cyan-50 text-cyan-700">{image ? <img src={image} alt="Profile preview" className="h-full w-full object-cover" /> : <Camera />}</div><div><label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">{uploading === "image" ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />} Upload photo<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={!!uploading} onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file, "image"); event.target.value = ""; }} /></label>{image && <button type="button" className="ml-3 text-sm text-red-600" onClick={() => setValue("image", "")}>Remove</button>}<p className="mt-2 text-xs text-slate-500">JPG, PNG or WebP, up to 5 MB</p></div></div><FieldError message={errors.image?.message} /></div><label className="space-y-2 text-sm font-medium">Full name<input className={inputClass} {...register("name")} /><FieldError message={errors.name?.message} /></label><label className="space-y-2 text-sm font-medium">Gender<select className={inputClass} {...register("gender")}><option>Male</option><option>Female</option><option>Other</option></select></label><label className="space-y-2 text-sm font-medium">Date of birth<input type="date" className={inputClass} {...register("dob")} /><FieldError message={errors.dob?.message} /></label><label className="space-y-2 text-sm font-medium">Phone<input className={inputClass} inputMode="numeric" maxLength={10} {...register("phone")} /><FieldError message={errors.phone?.message} /></label></div></Section>}
+    {step === 1 && <Section title="Professional Details" description="Help patients understand your expertise and consultation options."><div className="grid gap-5 md:grid-cols-2"><div><SearchSelect label="Specialization" value={watch("specialization")} options={specializations} placeholder="Search specialization..." onChange={(value) => setValue("specialization", value, { shouldValidate: true })} error={errors.specialization?.message} />{watch("specialization") === "Other" && <input className={`${inputClass} mt-2`} placeholder="Enter your specialization" onChange={(event) => setValue("specialization", event.target.value, { shouldValidate: true })} />}</div><div><SearchSelect label="Degree" value={watch("degree")} options={degrees} placeholder="Search degree..." onChange={(value) => setValue("degree", value, { shouldValidate: true })} error={errors.degree?.message} />{watch("degree") === "Other" && <input className={`${inputClass} mt-2`} placeholder="Enter your degree" onChange={(event) => setValue("degree", event.target.value, { shouldValidate: true })} />}</div><label className="space-y-2 text-sm font-medium">Years of experience<div className="relative"><input type="number" min="0" className={`${inputClass} pr-16`} {...register("experience")} /><span className="absolute right-3 top-3 text-sm text-slate-500">years</span></div><div className="flex flex-wrap gap-2">{[[0, "0-1"], [2, "2-5"], [6, "6-10"], [11, "11-15"], [16, "16+"]].map(([value, label]) => <button type="button" key={label} onClick={() => setValue("experience", Number(value), { shouldValidate: true })} className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-cyan-400 hover:text-cyan-700">{label}</button>)}</div><FieldError message={errors.experience?.message} /></label><label className="space-y-2 text-sm font-medium">Medical license number<input className={inputClass} {...register("licenseNumber")} /><FieldError message={errors.licenseNumber?.message} /></label><div className="space-y-2 text-sm font-medium md:col-span-2"><label>Languages</label><div className="flex min-h-12 flex-wrap gap-2 rounded-xl border border-slate-300 bg-white p-2">{selectedLanguages.map((language) => <span key={language} className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800">{language}<button type="button" aria-label={`Remove ${language}`} onClick={() => setValue("languages", selectedLanguages.filter((item) => item !== language), { shouldValidate: true })}><X size={13} /></button></span>)}<input className="min-w-32 flex-1 px-1 text-sm outline-none" value={languageQuery} onChange={(event) => setLanguageQuery(event.target.value)} placeholder="Search and add languages..." /></div>{languageQuery && <div className="flex flex-wrap gap-2">{visibleLanguages.map((language) => <button type="button" key={language} onClick={() => { setValue("languages", [...selectedLanguages, language], { shouldValidate: true }); setLanguageQuery(""); }} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs hover:border-cyan-400">{language}</button>)}</div>}{selectedLanguages.includes("Other") && <input className={inputClass} placeholder="Add another language" onChange={(event) => { const custom = event.target.value.trim(); setValue("languages", custom ? [...selectedLanguages.filter((item) => item !== "Other"), custom] : selectedLanguages, { shouldValidate: true }); }} />}{<FieldError message={errors.languages?.message} />}</div><label className="space-y-2 text-sm font-medium">Consultation fee<div className="relative"><span className="absolute left-3 top-3 text-slate-500">₹</span><input type="number" min="0" className={`${inputClass} pl-8`} {...register("consultationFee")} /></div><FieldError message={errors.consultationFee?.message} /></label><fieldset className="space-y-2 text-sm font-medium md:col-span-2"><legend>Consultation mode</legend><div className="grid gap-3 sm:grid-cols-3">{["Clinic", "Online", "Both"].map((option) => <label key={option} className={`cursor-pointer rounded-xl border p-4 transition ${consultationMode === option ? "border-cyan-600 bg-cyan-50 text-cyan-900 ring-2 ring-cyan-100" : "border-slate-200 bg-white"}`}><input type="radio" value={option} className="sr-only" {...register("consultationMode")} /><span className="font-semibold">{option}</span><span className="mt-1 block text-xs text-slate-500">{option === "Online" ? "Video consultations" : option === "Both" ? "Clinic and online" : "In-person care"}</span></label>)}</div></fieldset><label className="space-y-2 text-sm font-medium md:col-span-2">Professional bio<textarea rows={5} maxLength={600} className={inputClass} {...register("bio")} /><span className="block text-right text-xs text-slate-500">{(watch("bio") || "").length}/600</span><FieldError message={errors.bio?.message} /></label></div></Section>}
+    {step === 2 && <Section title="Clinic Location" description={consultationMode === "Online" ? "Clinic location isn't required for online consultations." : "Patients use this information to find your clinic."}>{consultationMode !== "Online" && <><ClinicLocationPicker value={locationValue} onChange={(location) => { setValue("clinic.coordinates.latitude", location.latitude, { shouldValidate: true }); setValue("clinic.coordinates.longitude", location.longitude, { shouldValidate: true }); setValue("clinic.address", location.address, { shouldValidate: true }); setValue("clinic.city", location.city, { shouldValidate: true }); setValue("clinic.state", location.state, { shouldValidate: true }); setValue("clinic.pincode", location.pincode, { shouldValidate: true }); setValue("clinic.mapLink", location.mapLink, { shouldValidate: true }); }} onError={setMessage} /><div className="mt-5 grid gap-5 md:grid-cols-2"><label className="space-y-2 text-sm font-medium">Clinic name<input className={inputClass} {...register("clinic.name")} /><FieldError message={errors.clinic?.name?.message} /></label><label className="space-y-2 text-sm font-medium">Clinic phone<input className={inputClass} inputMode="numeric" maxLength={10} {...register("clinic.phone")} /><FieldError message={errors.clinic?.phone?.message} /></label><label className="space-y-2 text-sm font-medium md:col-span-2">Address<textarea rows={3} className={inputClass} {...register("clinic.address")} /><FieldError message={errors.clinic?.address?.message} /></label><label className="space-y-2 text-sm font-medium">City<input className={inputClass} {...register("clinic.city")} /><FieldError message={errors.clinic?.city?.message} /></label><label className="space-y-2 text-sm font-medium">State<SearchSelect label="" value={watch("clinic.state")} options={indianStates} placeholder="Search state..." onChange={(value) => setValue("clinic.state", value, { shouldValidate: true })} error={errors.clinic?.state?.message} /></label><label className="space-y-2 text-sm font-medium">Pincode<input className={inputClass} inputMode="numeric" maxLength={6} {...register("clinic.pincode")} /><FieldError message={errors.clinic?.pincode?.message} /></label><label className="space-y-2 text-sm font-medium">Landmark <span className="font-normal text-slate-500">(optional)</span><input className={inputClass} {...register("clinic.landmark")} /></label><div className="md:col-span-2"><label className="mb-2 block text-sm font-medium">Clinic images</label><div className="flex flex-wrap gap-3">{clinicImages.map((url, index) => <div key={url} className="relative h-24 w-24 overflow-hidden rounded-xl"><img src={url} alt={`Clinic ${index + 1}`} className="h-full w-full object-cover" /><button type="button" aria-label="Remove clinic image" className="absolute right-1 top-1 rounded bg-white p-1 text-red-600" onClick={() => setValue("clinic.images", clinicImages.filter((_, imageIndex) => imageIndex !== index))}><Trash2 size={14} /></button></div>)}<label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 text-xs text-slate-500">{uploading === "clinic" ? <Loader2 className="animate-spin" /> : <Plus />} Add image<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={!!uploading} onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file, "clinic"); event.target.value = ""; }} /></label></div></div></div></>}{consultationMode === "Online" && <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-4 text-sm text-cyan-900"><MapPin size={18} className="mb-2" />You can continue without adding a clinic address.</div>}</Section>}
+    {step === 3 && <Section title="Availability" description="Set the times patients can book with you."><div className="space-y-3">{days.map((day) => { const available = watch(`availability.${day}.available`); return <div key={day} className="grid items-center gap-3 rounded-xl border border-slate-200 p-3 sm:grid-cols-[9rem_8rem_1fr_1fr]"><span className="font-medium">{dayLabels[day]}</span><label className="flex items-center gap-2 text-sm"><input type="checkbox" {...register(`availability.${day}.available`)} /> Available</label>{available ? <><label className="text-sm text-slate-600">Start<input type="time" className={inputClass} {...register(`availability.${day}.start`)} /><FieldError message={errors.availability?.[day]?.start?.message} /></label><label className="text-sm text-slate-600">End<input type="time" className={inputClass} {...register(`availability.${day}.end`)} /><FieldError message={errors.availability?.[day]?.end?.message} /></label></> : <span className="text-sm text-slate-500">Day off</span>}</div>; })}</div></Section>}
+    {message && <div role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{message}</div>}
+    <div className="flex flex-wrap justify-between gap-3"><button type="button" onClick={() => setStep((current) => current - 1)} disabled={step === 0} className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 disabled:invisible">Back</button>{step < 3 ? <button type="button" onClick={() => void next(step === 0 ? ["name", "gender", "dob", "phone"] : step === 1 ? ["specialization", "degree", "experience", "licenseNumber", "languages", "consultationFee", "consultationMode", "bio"] : ["clinic"])} className="inline-flex items-center gap-2 rounded-xl bg-cyan-700 px-6 py-3 text-sm font-semibold text-white hover:bg-cyan-800">Continue</button> : <button type="submit" disabled={isSubmitting || !!uploading} className="inline-flex items-center gap-2 rounded-xl bg-cyan-700 px-6 py-3 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">{isSubmitting ? <Loader2 className="animate-spin" size={17} /> : <Check size={17} />}{isSubmitting ? "Saving profile..." : formMode === "create" ? "Create Profile" : "Save Changes"}</button>}</div>
+  </form></div></div>;
 }
