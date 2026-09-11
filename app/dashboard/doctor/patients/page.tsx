@@ -35,9 +35,15 @@ export default function DoctorPatientsPage() {
         const res = await fetch("/api/doctor/patients");
         const data = await res.json();
 
-        setPatients(data);
+        // Ensure data is an array; handle error responses
+        if (Array.isArray(data)) {
+          setPatients(data);
+        } else {
+          setPatients([]);
+        }
       } catch (error) {
         console.log(error);
+        setPatients([]);
       } finally {
         setLoading(false);
       }

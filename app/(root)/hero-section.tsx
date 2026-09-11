@@ -161,7 +161,7 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6">
-        <div className="flex min-h-screen items-center">
+        <div className="flex min-h-screen items-center -translate-y-8">
           <div className="max-w-3xl text-white">
             <motion.span
               initial={{ opacity: 0, y: 20 }}
@@ -244,7 +244,7 @@ export default function Hero() {
           initial={{ opacity: 0, x: 80 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.7 }}
-          className="absolute bottom-16 right-10 hidden w-96 rounded-3xl border border-white/20 bg-white/10 p-6 backdrop-blur-xl lg:block"
+          className="absolute bottom-16 right-10 hidden w-96 -translate-y-6 rounded-3xl border border-white/20 bg-white/10 p-6 backdrop-blur-xl lg:block"
         >
           <div className="mb-6 flex items-center gap-3">
             <div className="rounded-xl bg-cyan-500/20 p-3">

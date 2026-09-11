@@ -1,14 +1,15 @@
 import Link from "next/link";
+import { Stethoscope } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-50 py-12 text-slate-700">
+    <footer className="border-t border-slate-200 bg-cyan-50 py-12 text-slate-700">
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <div className="grid gap-10 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-lg font-bold text-cyan-600">
-                H
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-cyan-500/20 backdrop-blur-md">
+                <Stethoscope size={22} className="text-cyan-400" />
               </div>
               <div>
                 <p className="text-xl font-bold text-slate-900">Healthcare</p>

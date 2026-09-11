@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import mongoose from "mongoose";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -31,10 +32,19 @@ export async function GET() {
     });
 
     const patientIds = [...new Set(appointments.map((a) => a.patientId))];
+    
+    // Filter out invalid ObjectIds to prevent CastError
+    const validPatientIds = patientIds.filter((id) =>
+      mongoose.Types.ObjectId.isValid(id)
+    );
+
+    if (validPatientIds.length === 0) {
+      return NextResponse.json([]);
+    }
 
     const patients = await Patient.find({
       userId: {
-        $in: patientIds,
+        $in: validPatientIds,
       },
     });
 
