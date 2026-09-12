@@ -6,15 +6,16 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import {
-  Bell,
   ChevronDown,
   LayoutDashboard,
   LogOut,
   Stethoscope,
   User,
+  Bell,
 } from "lucide-react";
 
 import { clinicName, navLinks } from "@/lib/site-data";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -73,10 +74,7 @@ export function Navbar() {
 
           {session ? (
             <>
-              <button className="relative hidden h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white backdrop-blur-md transition hover:bg-white/10 sm:flex">
-                <Bell size={18} />
-                <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-red-500" />
-              </button>
+              <NotificationBell />
 
               <div className="relative hidden md:block">
                 <button

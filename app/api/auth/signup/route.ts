@@ -3,6 +3,7 @@ import { MongoServerError } from "mongodb";
 import { connectDB } from "../../../../lib/db";
 import User from "../../../../lib/models/user";
 import Doctor from "../../../../lib/models/doctor";
+import { createNotification } from "@/lib/notifications";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
@@ -80,6 +81,31 @@ export async function POST(req: Request) {
     } finally {
       if (session) {
         await session.endSession();
+      }
+    }
+
+    // ✅ Send notification to admin if doctor registered
+    if (role === "doctor" && userId) {
+      try {
+        // Find the admin user to get their actual ObjectId
+        const adminUser = await User.findOne({ role: "admin" }).lean();
+
+        if (adminUser) {
+          await createNotification({
+            recipientId: adminUser._id.toString(),
+            recipientRole: "admin",
+            title: "New doctor registration",
+            message: `A new doctor account has been created by ${String(name).trim()}. Please verify their profile.`,
+            type: "doctor",
+            relatedId: userId,
+          });
+        }
+      } catch (notificationError) {
+        console.error(
+          "Failed to create admin notification:",
+          notificationError,
+        );
+        // Don't fail the signup if notification fails
       }
     }
 

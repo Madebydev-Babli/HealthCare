@@ -1,5 +1,7 @@
 import { connectDB } from "@/lib/db";
 import Appointment from "@/lib/models/appointment";
+import { createNotification } from "@/lib/notifications";
+import UserModel from "@/lib/models/user";
 
 const allowedStatuses = [
   "pending",
@@ -42,6 +44,53 @@ export async function PUT(
         { message: "Appointment not found" },
         { status: 404 },
       );
+    }
+
+    // ✅ Send notifications based on status change
+    try {
+      if (status === "approved") {
+        // Notify patient that appointment was approved
+        const patientUser = await UserModel.findById(updated.patientId);
+        if (patientUser) {
+          await createNotification({
+            recipientId: updated.patientId,
+            recipientRole: "patient",
+            title: "Appointment approved",
+            message: `Your appointment with Dr. ${updated.doctorName} has been approved.`,
+            type: "appointment",
+            relatedId: updated._id.toString(),
+          });
+        }
+      } else if (status === "rejected") {
+        // Notify patient that appointment was rejected
+        const patientUser = await UserModel.findById(updated.patientId);
+        if (patientUser) {
+          await createNotification({
+            recipientId: updated.patientId,
+            recipientRole: "patient",
+            title: "Appointment rejected",
+            message: `Your appointment with Dr. ${updated.doctorName} was rejected.`,
+            type: "appointment",
+            relatedId: updated._id.toString(),
+          });
+        }
+      } else if (status === "cancelled") {
+        // Notify doctor that appointment was cancelled
+        const doctorUser = await UserModel.findById(updated.doctorId);
+        if (doctorUser) {
+          await createNotification({
+            recipientId: updated.doctorId,
+            recipientRole: "doctor",
+            title: "Appointment cancelled",
+            message: `${updated.patientName} cancelled an appointment.`,
+            type: "appointment",
+            relatedId: updated._id.toString(),
+          });
+        }
+      }
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError);
+      // Don't fail the appointment update if notification fails
     }
 
     return Response.json({

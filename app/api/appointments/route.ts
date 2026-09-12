@@ -3,9 +3,11 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { createNotification } from "@/lib/notifications";
 
 import Appointment from "@/lib/models/appointment";
 import DoctorProfile from "@/lib/models/doctor";
+import UserModel from "@/lib/models/user";
 
 export async function POST(req: NextRequest) {
   try {
@@ -84,6 +86,21 @@ export async function POST(req: NextRequest) {
       paymentStatus: "pending",
       status: "pending",
     });
+
+    // ✅ Notify doctor of new appointment request
+    try {
+      await createNotification({
+        recipientId: doctor.userId.toString(),
+        recipientRole: "doctor",
+        title: "New appointment request",
+        message: `A new appointment request has been received from ${session.user.name}`,
+        type: "appointment",
+        relatedId: appointment._id.toString(),
+      });
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError);
+      // Don't fail the appointment creation if notification fails
+    }
 
     return NextResponse.json(
       {

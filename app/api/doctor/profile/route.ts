@@ -4,7 +4,9 @@ import { z } from "zod";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { createNotification } from "@/lib/notifications";
 import Doctor from "@/lib/models/doctor";
+import UserModel from "@/lib/models/user";
 
 const days = [
   "monday",
@@ -159,14 +161,44 @@ async function saveProfile(req: Request, method: "POST" | "PUT") {
       { new: true, runValidators: true },
     );
   } catch (error: unknown) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === 11000) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 11000
+    ) {
       return NextResponse.json(
-        { success: false, message: "That medical license number is already registered. Please check it and try again." },
+        {
+          success: false,
+          message:
+            "That medical license number is already registered. Please check it and try again.",
+        },
         { status: 409 },
       );
     }
     throw error;
   }
+
+  // Send notification to admin for profile updates
+  if (updated) {
+    try {
+      const adminUser = await UserModel.findOne({ role: "admin" }).lean();
+      if (adminUser) {
+        await createNotification({
+          recipientId: adminUser._id.toString(),
+          recipientRole: "admin",
+          title: "Doctor profile updated",
+          message: `Dr. ${updated.name} has updated their profile. Please review and verify if needed.`,
+          type: "profile",
+          relatedId: updated._id.toString(),
+        });
+      }
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError);
+      // Don't fail the profile update if notification fails
+    }
+  }
+
   return NextResponse.json(
     {
       success: true,

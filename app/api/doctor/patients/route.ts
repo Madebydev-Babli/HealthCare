@@ -32,10 +32,10 @@ export async function GET() {
     });
 
     const patientIds = [...new Set(appointments.map((a) => a.patientId))];
-    
+
     // Filter out invalid ObjectIds to prevent CastError
     const validPatientIds = patientIds.filter((id) =>
-      mongoose.Types.ObjectId.isValid(id)
+      mongoose.Types.ObjectId.isValid(id),
     );
 
     if (validPatientIds.length === 0) {
